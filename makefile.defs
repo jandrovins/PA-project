@@ -1,0 +1,10 @@
+%.vvp: %_tb.v %.v
+	iverilog -o $@ $?;
+
+%.fst: %.vvp
+	vvp $< -fst && mv dump.fst $@;
+
+clean:
+	rm -f *.vvp *.fst;
+
+.PRECIOUS: %.vvp
