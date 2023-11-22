@@ -1,5 +1,5 @@
 %.vvp: %_tb.v %.v
-	iverilog -o $@ $?;
+	iverilog -o $@ $? $(VERI_INCL);
 
 %.fst: %.vvp
 	vvp $< -fst && mv dump.fst $@;
