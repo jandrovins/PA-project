@@ -11,11 +11,11 @@ module beea(
 	reg signed [31:0] curU, curV, curA, curC, curP;
 	wire [31:0] newU, newA, newV, newC;
 	reg signed [31:0] outCReg;
-	reg processing;
-	reg pifSelect, pifNotified;
+	reg [1:0] status;
+	reg pifSelect;
 	wire pifRdyA, pifRdyB;
 
-	assign rdy = ~processing;
+	assign rdy = status == 2'b00;
 	assign outC = outCReg;
 
 	processIfEven instA (/*Inputs:*/ .clk(clk), .opselect(pifSelect), .u(curU), .a(curA), .p(curP), /*Outputs:*/ .outU(newU), .outA(newA), .rdy(pifRdyA));
@@ -28,53 +28,56 @@ module beea(
 		$dumpvars(0, curV);
 		$dumpvars(0, curA);
 		$dumpvars(0, curC);
+		$dumpvars(0, newU);
+		$dumpvars(0, newV);
+		$dumpvars(0, newA);
+		$dumpvars(0, newC);
+		$dumpvars(0, status);
+		$dumpvars(0, rdy);
 		$dumpvars(0, pifRdyA);
 		$dumpvars(0, pifRdyB);
 		$dumpvars(0, outCReg);
-		processing = 1'b0;
+		status = 2'b00;
 		pifSelect = 1'b0;
-		pifNotified = 1'b0;
 	end
 
-	always @(posedge pifRdyA or posedge pifRdyB) begin
-		if(pifRdyA && pifRdyB) begin
-			pifNotified = 1'b0;
-			if(newU >= newV) begin
-				curU <= newU - newV;
-				curV <= newV;
-				curA <= newA - newC;
-				curC <= newC;
-			end else begin
-				curU <= newU;
-				curV <= newV - newU;
-				curA <= newA;
-				curC <= newC - newA;
-			end
-		end
-	end // always @ (posedge pifRdyA or posedge pifRdyB)
-
-	always @(posedge opselect) begin
-		if(!processing) begin
-			curU <= k;
-			curV <= p;
-			curA <= 32'b1;
-			curC <= 32'b0;
-			curP <= p;
-			processing = 1'b1;
-		end
-	end // always @(posedge opselect)
-
 	always @(posedge clk) begin
-		if(processing) begin
-			if(curU == 32'b0) begin
-				outCReg = curC[31] == 1 ? curC + curP : curC;
-				processing = 1'b0;
-			end else if(!pifNotified) begin
-				pifNotified = 1'b1;
-				pifSelect = 1'b1;
-				#1 pifSelect <= 1'b0;
+		if(status == 2'b00) begin // Not operating
+			if(opselect) begin // Requested to operate, start operation
+				curU = k;
+				curV = p;
+				curA = 32'b1;
+				curC = 32'b0;
+				curP = p;
+				status = 2'b01;
 			end
-		end
+			// If there's no request to operate, do nothing.
+		end else if(status == 2'b01) begin // Operating, phase 1: working
+			if(curU == 32'b0) begin // Stop condition
+				outCReg = curC[31] == 1 ? curC + curP : curC;
+				status = 2'b00;
+			end else begin
+				pifSelect = 1'b1;
+				//#2 pifSelect <= 1'b0;
+				#1 pifSelect = 1'b0;
+				status = 2'b10;
+			end
+		end else if(status == 2'b10) begin // Operating, phase 2: Waiting for PIF
+			if(pifRdyA && pifRdyB) begin
+				status = 2'b01;
+				if(newU >= newV) begin
+					curU = newU - newV;
+					curV = newV;
+					curA = newA - newC;
+					curC = newC;
+				end else begin
+					curU = newU;
+					curV = newV - newU;
+					curA = newA;
+					curC = newC - newA;
+				end
+			end // if (pifRdyA && pifRdyB)
+		end // if (status == 2'b10)
 	end // always @(posedge clk)
 endmodule
 
@@ -99,39 +102,37 @@ module processIfEven(
 	assign rdy = !processing;
 
 	initial begin
+		$dumpvars(0, clk);
+		$dumpvars(0, opselect);
+		$dumpvars(0, u);
+		$dumpvars(0, a);
+		$dumpvars(0, p);
 		$dumpvars(0, curU);
 		$dumpvars(0, curA);
+		$dumpvars(0, processing);
 		processing = 1'b0;
 	end
 
-	// If the opselect signal goes high, we are requested to start computation,
-	// if we are not processing. If we are, ignore the request.
-	// When it starts, copy data into intermediate registers
-	// and update the processing signal
-	always @(posedge opselect) begin
-		if(!processing) begin
-			processing <= 1'b1;
-			curU <= {u[31], u}; // Sign-extensions
-			curA <= {a[31], a};
-			curP <= {p[31], p};
-		end
-	end // always @(posedge opselect)
-
 	always @(posedge clk) begin
-		// If we are in the middle of a computation, work with the
-		// intermediate registers only, and update output and rdy when done
-		if(processing) begin
+		if(processing) begin // Already processing.
 			if(curU[0] == 1'b0 && curA[0] == 1'b0) begin
-				curU <= curU >>> 1;
-				curA <= curA >>> 1;
+				curU = curU >>> 1;
+				curA = curA >>> 1;
 			end else if(curU[0] == 1'b0) begin
-				curU <= curU >>> 1;
-				curA <= (curA + curP) >>> 1;
+				curU = curU >>> 1;
+				curA = (curA + curP) >>> 1;
 			end else begin
-				outUReg <= curU[31:0];
-				outAReg <= curA[31:0];
-				processing <= 1'b0;
+				outUReg = curU[31:0];
+				outAReg = curA[31:0];
+				processing = 1'b0;
 			end
-		end // if (processing)
+		end else if(opselect) begin // Not processing, and requested to start computation.
+			// Start computation: copy data into intermediate registers
+			// and update the processing signal
+			processing = 1'b1;
+			curU = {u[31], u}; // Sign-extensions
+			curA = {a[31], a};
+			curP = {p[31], p};
+		end // else: !if(processing)
 	end // always @ (posedge clk)
 endmodule

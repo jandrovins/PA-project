@@ -2,7 +2,7 @@
 	iverilog -o $@ $? $(VERI_INCL);
 
 %.fst: %.vvp
-	vvp $< -fst && mv dump.fst $@;
+	vvp -n $< -fst && mv dump.fst $@;
 
 clean:
 	rm -f *.vvp *.fst;

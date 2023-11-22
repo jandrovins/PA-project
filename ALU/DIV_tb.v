@@ -21,59 +21,71 @@ module top_module ();
 		$dumpvars(0, ERROR);
 		$dumpvars(0, testNumber);
 		testNumber = 32'd0;
+		opselect = 1'b0;
 		ERROR = 0;
 	end // initial begin
 
-	always @(posedge rdy) begin
-		$display("Hola");
-		case(testNumber)
-		  0: begin
-			  testNumber = testNumber+1;
-			  a = 31'd8;
-			  b = 31'd4;
-			  opselect = 1;
-			  #1 opselect = 0;
-		  end
-		  1: begin
-			  if(outDiv != 31'd2) begin
-				  ERROR = 1;
-				  #1 ERROR = 0;
+	always @(posedge clk) begin
+		if(rdy) begin
+			$display("posedge rdy");
+			case(testNumber)
+			  0: begin
+				  $display("launching test 0");
+				  testNumber <= testNumber+1;
+				  a = 31'd8;
+				  b = 31'd4;
+				  opselect = 1;
+				  #2 opselect = 0;
 			  end
-			  testNumber = testNumber+1;
-			  a = 31'd32;
-			  b = 31'd2;
-			  opselect = 1;
-			  #1 opselect = 0;
-		  end
-		  2: begin
-			  if(outDiv != 31'd16) begin
-				  ERROR = 1;
-				  #1 ERROR = 0;
+			  1: begin
+				  if(outDiv != 31'd2) begin
+					  $display("ERROR in test 0");
+					  ERROR = 1;
+					  #1 ERROR = 0;
+				  end
+				  $display("launching test 1");
+				  testNumber <= testNumber+1;
+				  a = 31'd32;
+				  b = 31'd2;
+				  opselect <= 1;
+				  #3 opselect = 0;
 			  end
-			  testNumber = testNumber+1;
-			  a = 31'd7;
-			  b = 31'd2;
-			  opselect = 1;
-			  #1 opselect = 0;
-		  end
-		  3: begin
-			  if(outDiv != 31'd1073741827) begin
-				  ERROR = 1;
-				  #1 ERROR = 0;
+			  2: begin
+				  if(outDiv != 31'd16) begin
+					  $display("ERROR in test 1");
+					  ERROR = 1;
+					  #1 ERROR = 0;
+				  end
+				  $display("launching test 2");
+				  testNumber <= testNumber+1;
+				  a = 31'd7;
+				  b = 31'd2;
+				  opselect = 1;
+				  #2 opselect = 0;
 			  end
-			  testNumber = testNumber+1;
-			  a = 31'd10000;
-			  b = 31'd99999;
-			  opselect = 1;
-			  #1 opselect = 0;
-		  end
-		  4: begin
-			  if(outDiv != 31'd1466552723) begin
-				  ERROR = 1;
-				  #1 ERROR = 0;
+			  3: begin
+				  if(outDiv != 31'd1073741827) begin
+					  $display("ERROR in test 2");
+					  ERROR = 1;
+					  #1 ERROR = 0;
+				  end
+				  $display("launching test 3");
+				  testNumber <= testNumber+1;
+				  a = 31'd10000;
+				  b = 31'd99999;
+				  #2 opselect = 1;
+				  #5 opselect = 0;
 			  end
-			  #2 $finish;
-		  end
-		endcase
+			  4: begin
+				  if(outDiv != 31'd1466552723) begin
+					  $display("ERROR in test 3");
+					  ERROR = 1;
+					  #1 ERROR = 0;
+				  end
+				  $display("finishing");
+				  #2 $finish;
+			  end
+			endcase // case (testNumber)
+		end // if (rdy)
 	end // always @ (posedge rdy)
 endmodule // top_module
