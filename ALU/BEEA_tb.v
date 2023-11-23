@@ -1,6 +1,6 @@
 module top_module ();
 	reg clk=0;
-	always #1 clk = ~clk;  // Create clock with period=10
+	always #1 clk = ~clk;
 
 	reg opselect;
 	reg [31:0] u, a;
@@ -25,7 +25,8 @@ module top_module ();
 		ERROR = 0;
 	end // initial begin
 
-	always @(posedge rdy) begin
+	always @(posedge clk) begin
+		if(rdy) begin
 		case(testNumber)
 		  0: begin
 			  testNumber = 32'd1;
@@ -180,6 +181,7 @@ module top_module ();
 			  #2 $finish;
 		  end
 		endcase // case (testNumber)
+		end // if (rdy)
 	end
 
 

@@ -95,11 +95,19 @@ module processIfEven(
 
 	reg processing;
 	reg signed [32:0] curU, curA, curP; // 33 bits to prevent overflows that change the result
-	reg [31:0] outUReg, outAReg;
+	wire [32:0] procU, procA, newA;
 
-	assign outU = outUReg;
-	assign outA = outAReg;
+	assign outU = curU;
+	assign outA = curA;
 	assign rdy = !processing;
+
+	// Compute the next U
+	assign procU = curU[0] == 1'b0 ? curU >>> 1 : curU;
+
+	// Compute the next A
+	assign newA  = curA[0] == 1'b0 ? curA >>> 1 : (curA + curP) >>> 1;
+	assign procA = curU[0] == 1'b0 ? newA : curA;
+
 
 	initial begin
 		$dumpvars(0, clk);
@@ -111,28 +119,26 @@ module processIfEven(
 		$dumpvars(0, curA);
 		$dumpvars(0, processing);
 		processing = 1'b0;
+	end // initial begin
+
+
+	always @(posedge opselect) begin
+		curU <= {u[31], u};
+		curA <= {a[31], a};
+		curP <= {p[31], p};
+		processing <= 1'b1;
 	end
 
 	always @(posedge clk) begin
-		if(processing) begin // Already processing.
-			if(curU[0] == 1'b0 && curA[0] == 1'b0) begin
-				curU = curU >>> 1;
-				curA = curA >>> 1;
-			end else if(curU[0] == 1'b0) begin
-				curU = curU >>> 1;
-				curA = (curA + curP) >>> 1;
-			end else begin
-				outUReg = curU[31:0];
-				outAReg = curA[31:0];
-				processing = 1'b0;
-			end
-		end else if(opselect) begin // Not processing, and requested to start computation.
-			// Start computation: copy data into intermediate registers
-			// and update the processing signal
-			processing = 1'b1;
-			curU = {u[31], u}; // Sign-extensions
-			curA = {a[31], a};
-			curP = {p[31], p};
-		end // else: !if(processing)
-	end // always @ (posedge clk)
+		curP <= curP;
+		if(processing) begin
+			curU <= procU;
+			curA <= procA;
+			processing <= curU[0] != 1'b1;
+		end else begin
+			curU <= curU;
+			curA <= curA;
+			processing <= 0;
+		end
+	end
 endmodule
