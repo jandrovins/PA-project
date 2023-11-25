@@ -1,111 +1,88 @@
 
 
-module beea(
+module BEEA(
 	input clk,
-	input opselect,
+	input reset,
+	input start,
 	input [31:0] k,
 	input [31:0] p,
 	output signed [31:0] outC,
 	output rdy);
 
 	reg signed [32:0] curU, curV, curA, curC, curP;
-	wire [32:0] newU, newA, newV, newC;
+	wire [32:0] newU, newA, newV, newC, nextCurU, nextCurV, nextCurA, nextCurC, nextCurP;
 	reg signed [32:0] outCReg;
-	reg [1:0] status;
-	reg pifSelect;
+	wire [32:0] nextOutCReg;
+	reg processing, pifSelect;
+	wire nextProcessing, nextPifSelect;
 	wire pifRdyA, pifRdyB;
 
-	assign rdy = status == 2'b00;
+	processIfEven instA (.clk(clk), .reset(reset), .start(pifSelect), .u(curU), .a(curA), .p(curP),
+			     .outU(newU), .outA(newA), .rdy(pifRdyA));
+	processIfEven instB (.clk(clk), .reset(reset), .start(pifSelect), .u(curV), .a(curC), .p(curP),
+			     .outU(newV), .outA(newC), .rdy(pifRdyB));
+
+	assign rdy = ~processing;
 	assign outC = {outCReg[32], outCReg[30:0]};
 
-	processIfEven instA (/*Inputs:*/ .clk(clk), .opselect(pifSelect), .u(curU), .a(curA), .p(curP), /*Outputs:*/ .outU(newU), .outA(newA), .rdy(pifRdyA));
-	processIfEven instB (/*Inputs:*/ .clk(clk), .opselect(pifSelect), .u(curV), .a(curC), .p(curP), /*Outputs:*/ .outU(newV), .outA(newC), .rdy(pifRdyB));
+	assign nextCurU = start ? {k[31], k} :
+			  pifRdyA && pifRdyB && newU >= newV ? newU - newV :
+			  pifRdyA && pifRdyB ? newU :
+			  curU;
 
-	initial begin
-		$dumpvars(0, opselect);
-		$dumpvars(0, pifSelect);
-		$dumpvars(0, curU);
-		$dumpvars(0, curV);
-		$dumpvars(0, curA);
-		$dumpvars(0, curC);
-		$dumpvars(0, newU);
-		$dumpvars(0, newV);
-		$dumpvars(0, newA);
-		$dumpvars(0, newC);
-		$dumpvars(0, status);
-		$dumpvars(0, rdy);
-		$dumpvars(0, pifRdyA);
-		$dumpvars(0, pifRdyB);
-		$dumpvars(0, outCReg);
-		status = 2'b00;
-		pifSelect = 1'b0;
-	end
+	assign nextCurV = start ? {p[31], p} :
+			  pifRdyA && pifRdyB && newU >= newV ? newV :
+			  pifRdyA && pifRdyB ? newV - newU :
+			  curV;
 
-	always @(posedge opselect) begin
-		curU <= {k[31], k};
-		curV <= {p[31], p};
-		curA <= 33'b1;
-		curC <= 33'b0;
-		curP <= {p[31], p};
-		status <= 2'b01;
-		pifSelect <= 1'b1;
-		#1 pifSelect <= 1'b0;
-	end
+	assign nextCurA = start ? 33'b1 :
+			  pifRdyA && pifRdyB && newU >= newV ? newA - newC :
+			  pifRdyA && pifRdyB ? newA :
+			  curA;
 
-	always @(posedge pifRdyB) begin
-		if(status == 2'b01 && pifRdyA && pifRdyB) begin
-			status = 2'b10;
-			if(newU >= newV) begin
-				curU <= newU - newV;
-				curV <= newV;
-				curA <= newA - newC;
-				curC <= newC;
-			end else begin
-				curU <= newU;
-				curV <= newV - newU;
-				curA <= newA;
-				curC <= newC - newA;
-			end // else: !if(newU >= newV)
-		end // if (pifRdyA && pifRdyB)
-	end // always @ (posedge pifRdyA, posedge pifRdyB)
+	assign nextCurC = start ? 33'b0 :
+			  pifRdyA && pifRdyB && newU >= newV ? newC :
+			  pifRdyA && pifRdyB ? newC - newA :
+			  curC;
 
-	always @(posedge pifRdyA) begin
-		if(status == 2'b01 && pifRdyA && pifRdyB) begin
-			status = 2'b10;
-			if(newU >= newV) begin
-				curU <= newU - newV;
-				curV <= newV;
-				curA <= newA - newC;
-				curC <= newC;
-			end else begin
-				curU <= newU;
-				curV <= newV - newU;
-				curA <= newA;
-				curC <= newC - newA;
-			end // else: !if(newU >= newV)
-		end // if (pifRdyA && pifRdyB)
-	end // always @ (posedge pifRdyA, posedge pifRdyB)
+	assign nextCurP = start ? {p[31], p} : curP;
+
+	assign nextProcessing = start ? 1 :
+				pifRdyA && pifRdyB && nextCurU == 32'b0 ? 0 : processing;
+
+	assign nextOutCReg = processing && pifRdyA && pifRdyB && nextCurU == 32'b0 ?
+			     (nextCurC[31] == 1 ? nextCurC + nextCurP : nextCurC) :
+			     outCReg;
+
+	assign nextPifSelect = start ? 1 :
+			       processing == 0 ? 0 :
+			       pifSelect == 1'b1 ? 1'b0 :
+			       pifRdyA && pifRdyB && nextCurU != 32'b0;
 
 
-	always @(posedge clk) begin
-		if(status == 2'b10) begin // Operating, phase 1: working
-			if(curU == 32'b0) begin // Stop condition
-				outCReg <= curC[31] == 1 ? curC + curP : curC;
-				status <= 2'b00;
-			end else begin
-				status <= 2'b01;
-				pifSelect <= 1'b1;
-				#1 pifSelect <= 1'b0;
-			end
+	always @(posedge clk, posedge reset) begin
+		if (reset) begin
+			processing = 1'b0;
+			pifSelect = 1'b0;
+		end else begin
+			curU <= nextCurU;
+			curV <= nextCurV;
+			curA <= nextCurA;
+			curC <= nextCurC;
+			curP <= nextCurP;
+			processing <= nextProcessing;
+			outCReg <= nextOutCReg;
+			pifSelect <= nextPifSelect;
 		end
-	end // always @(posedge clk)
+	end // always @ (posedge clk, posedge start)
 endmodule
 
 
-
+// TUDU: Okay tener 2 módulos en el mismo fichero??
 module processIfEven(
 	input clk,
-	input opselect,
+	input reset,
+	input start,
 	input signed [32:0] u,
 	input signed [32:0] a,
 	input [32:0] p,
@@ -114,51 +91,42 @@ module processIfEven(
 	output rdy);
 
 	reg processing;
-	reg signed [32:0] curU, curA, curP; // 33 bits to prevent overflows that change the result
-	wire [32:0] procU, procA, newA;
+	// 33 bits to prevent overflows that change the result
+	reg signed [32:0] curU, curA, curP;
+	wire [32:0] procU, nextU, fstA, procA, nextA, nextP;
+	wire nextProcessing;
 
 	assign outU = curU;
 	assign outA = curA;
-	assign rdy = !processing;
+	assign rdy = !nextProcessing;
 
 	// Compute the next U
 	assign procU = curU[0] == 1'b0 ? curU >>> 1 : curU;
+	assign nextU = processing == 1'b1 ? procU :
+		       start == 1'b1 ? u :
+		       curU; // Latch the last result
 
 	// Compute the next A
-	assign newA  = curA[0] == 1'b0 ? curA >>> 1 : (curA + curP) >>> 1;
-	assign procA = curU[0] == 1'b0 ? newA : curA;
+	assign fstA  = curA[0] == 1'b0 ? curA >>> 1 : (curA + curP) >>> 1;
+	assign procA = curU[0] == 1'b0 ? fstA : curA;
+	assign nextA = processing == 1'b1 ? procA :
+		       start == 1'b1 ? a :
+		       curA; // Latch the last result
 
+	assign nextP = start == 1'b1 ? p : curP;
 
-	initial begin
-		$dumpvars(0, clk);
-		$dumpvars(0, opselect);
-		$dumpvars(0, u);
-		$dumpvars(0, a);
-		$dumpvars(0, p);
-		$dumpvars(0, curU);
-		$dumpvars(0, curA);
-		$dumpvars(0, processing);
-		processing = 1'b0;
-	end // initial begin
+	assign nextProcessing = start == 1'b1 ? 1'b1 :
+				processing == 1'b1 ? curU[0] != 1'b1 :
+				1'b0;
 
-
-	always @(posedge opselect) begin
-		curU <= u;
-		curA <= a;
-		curP <= p;
-		processing <= 1'b1;
-	end
-
-	always @(posedge clk) begin
-		curP <= curP;
-		if(processing) begin
-			curU <= procU;
-			curA <= procA;
-			processing <= curU[0] != 1'b1;
+	always @(posedge clk, posedge reset) begin
+		if (reset) begin
+			processing = 1'b0;
 		end else begin
-			curU <= curU;
-			curA <= curA;
-			processing <= 0;
+			curU <= nextU;
+			curA <= nextA;
+			curP <= nextP;
+			processing <= nextProcessing;
 		end
 	end
 endmodule

@@ -1,70 +1,56 @@
 
 
-module div(
+module DIV(
 	input clk,
-	input opselect,
+	input reset,
+	input start,
 	input [30:0] a,
 	input [30:0] b,
 	output [30:0] _div,
 	output _rdy);
 
-	reg processing, beeaSelect, waitAnotherClk;
-	reg [30:0] _divReg;
-	reg [31:0] F;
+	reg processing;
+	wire nextProcessing;
+	reg [30:0] _divReg, latchedA;
+	wire [30:0] next_divReg, nextLatchedA;
 	wire [31:0] outInv;
 	wire rdyInv;
 	reg [63:0] mult;
-	reg [31:0] u2, u3, u4;
+	wire [63:0] nextMult, newMult;
+	wire [31:0] newU2, newU3, newU4, newU41, newU42;
 
-	assign _rdy = ~processing;
+	assign _rdy = processing == 0 ? ~nextProcessing : ~processing;
 	assign _div = _divReg;
 
-	beea inst (.clk(clk), .opselect(beeaSelect), .k({1'b0, b}), .p(/*F*/32'h7fffffff), .outC(outInv), .rdy(rdyInv));
+	BEEA inst (.clk(clk), .reset(reset), .start(start), .k({1'b0, b}), .p(32'h7fffffff), .outC(outInv), .rdy(rdyInv));
 
-	initial begin
-		//$dumpvars(0, mult);
-		//$dumpvars(0, u2);
-		//$dumpvars(0, u3);
-		//$dumpvars(0, u4);
-		$dumpvars(0, outInv);
-		$dumpvars(0, rdyInv);
-		$dumpvars(0, processing);
-		$dumpvars(0, opselect);
-		$dumpvars(0, clk);
-		//F = 32'h7fffffff;
-		processing = 1'b0;
-		beeaSelect = 1'b0;
-		waitAnotherClk = 1'b0;
-	end
+	assign newMult = mult * { {32{outInv[31]}}, outInv};
+	assign newU2 = {1'b0, newMult[30:0]};
+	assign newU3 = {1'b0, newMult[61:31]};
+	assign newU41 = newU2 + newU3;
+	assign newU42 = {1'b0, newU41[30:0]} + 1;
+	assign newU4 = newU42 == 32'h7fffffff ? 32'b0 :
+		       (newU41 > 32'h7fffffff ? newU42 : newU41 );
 
-	always @(posedge clk) begin
-		if(!processing) begin
-			if(opselect) begin
-				// Requested to start, and no operation is being executed.
-				// Start the computation
-				processing <= 1'b1;
-				beeaSelect <= 1'b1;
-				#2 beeaSelect <= 1'b0;
-				mult <= {{33{a[30]}},a};
-				waitAnotherClk = 1'b1;
-			end
-		end else if(waitAnotherClk) begin // if (!processing)
-			waitAnotherClk = 1'b0;
-		end else if(rdyInv) begin
-			mult = mult * { {32{outInv[31]}}, outInv};
-			u2 = {1'b0, mult[30:0]};
-			u3 = {1'b0, mult[61:31]};
-			u4 = u2 + u3;
-			if(u4 > 32'h7fffffff) begin
-				u4[31] = 1'b0;
-				u4 = u4 + 1;
-			end
-			if(u4 == 32'h7fffffff) begin
-				u4 = 32'b0;
-			end
-			_divReg = u4[30:0];
-			processing = 1'b0;
+	assign nextProcessing = start ? 1 :
+				processing && rdyInv ? 0 : processing;
+
+	assign nextLatchedA = start ? a : latchedA;
+
+	assign nextMult = start ? {{33{a[30]}},a} : mult;
+
+	assign next_divReg = start ? _divReg :
+			     processing && rdyInv ? newU4[30:0] : _divReg;
+
+	always @(posedge clk, posedge reset) begin
+		if (reset) begin
+			processing <= 1'b0;
+		end else begin
+			latchedA <= nextLatchedA;
+			mult <= nextMult;
+			_divReg <= next_divReg;
+			processing <= nextProcessing;
 		end
-	end // always @(posedge opselect)
+	end
 
 endmodule
