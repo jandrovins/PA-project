@@ -1,10 +1,13 @@
-%.vvp: %_tb.v %.v
+%.vvp: %_tb.v %.v $(VERI_INCL)
 	iverilog -o $@ $? $(VERI_INCL);
 
 %.fst: %.vvp
 	vvp -n $< -fst && mv dump.fst $@;
 
+%.blif: %.v $(VERI_INCL)
+	yosys -p 'synth_ice40 -top $(*F) -blif $@' $< $(VERI_INCL);
+
 clean:
-	rm -f *.vvp *.fst;
+	rm -f *.vvp *.fst *.blif *~ **/*~;
 
 .PRECIOUS: %.vvp
