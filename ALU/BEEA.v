@@ -48,10 +48,11 @@ module BEEA(
 	assign nextCurP = start ? {p[31], p} : curP;
 
 	assign nextProcessing = start ? 1 :
-				pifRdyA && pifRdyB && nextCurU == 32'b0 ? 0 : processing;
+				pifRdyA && pifRdyB && nextCurU == 32'b0 && nextCurC >= 0 && nextCurC < nextCurP ? 0 : processing;
 
 	assign nextOutCReg = processing && pifRdyA && pifRdyB && nextCurU == 32'b0 ?
-			     (nextCurC[31] == 1 ? nextCurC + nextCurP : nextCurC) :
+			     (nextCurC < 0 ? nextCurC + nextCurP :
+			      nextCurC >= nextCurP ? nextCurC % nextCurP : nextCurC) :
 			     outCReg;
 
 	assign nextPifSelect = start ? 1 :
