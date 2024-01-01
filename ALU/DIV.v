@@ -39,7 +39,8 @@ module DIV(
 	assign nextRemainingSign = status == STATUS_LATCHING ? a[31] : remainingSign;
 	assign nextCurSignedness = status == STATUS_LATCHING ? signedness : curSignedness;
 
-	// REDUCING PHASE DISABLED: The remainder must be fixed: shifted left as much times as the operands have been shifted right
+	// REDUCING PHASE DISABLED: If reducing optimization is done, the remainder must be corrected:
+	// shifted left as much times as the operands have been shifted right
 	assign nextStatus = status == STATUS_IDLE && start && b == 32'b0 ? STATUS_ERROR :
 			    status == STATUS_IDLE && start && b != 32'b0 ? STATUS_LATCHING :
 
@@ -49,9 +50,9 @@ module DIV(
 			    // status == STATUS_LATCHING && (           a[0] == 1 ||           b[0] == 1) && nextDivisor <= nextDividend ? STATUS_COMPUTING :
 			    // status == STATUS_LATCHING && (           a[0] == 1 ||           b[0] == 1) && nextDivisor > nextDividend ? STATUS_IDLE :
 
-			    status == STATUS_REDUCING && (nextDividend[0] == 0 && nextDivisor[0] == 0) ? STATUS_REDUCING :
-			    status == STATUS_REDUCING && (nextDividend[0] == 1 || nextDivisor[0] == 1) && nextDivisor <= nextDividend ? STATUS_COMPUTING :
-			    status == STATUS_REDUCING && (nextDividend[0] == 1 || nextDivisor[0] == 1) && nextDivisor > nextDividend ? STATUS_IDLE :
+			    //status == STATUS_REDUCING && (nextDividend[0] == 0 && nextDivisor[0] == 0) ? STATUS_REDUCING :
+			    //status == STATUS_REDUCING && (nextDividend[0] == 1 || nextDivisor[0] == 1) && nextDivisor <= nextDividend ? STATUS_COMPUTING :
+			    //status == STATUS_REDUCING && (nextDividend[0] == 1 || nextDivisor[0] == 1) && nextDivisor > nextDividend ? STATUS_IDLE :
 			    status == STATUS_COMPUTING && nextDivisor <= nextDividend ? STATUS_COMPUTING :
 			    STATUS_IDLE;
 

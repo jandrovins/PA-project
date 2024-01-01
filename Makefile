@@ -1,10 +1,52 @@
 
+include makefile.defs
 
 
-all:
+all: all_waves all_synth
 	$(MAKE) -C ALU all
 
-clean: clean-dir-ALU
+all_waves: FETCH_STAGE_wave
+
+all_synth: FETCH_STAGE_synth
+
+
+FETCH_STAGE_DEPS =
+
+FETCH_STAGE_wave: VERI_INCL = $(FETCH_STAGE_DEPS)
+FETCH_STAGE_wave: FETCH_STAGE.fst
+
+FETCH_STAGE_synth: VERI_INCL = $(FETCH_STAGE_DEPS)
+FETCH_STAGE_synth: FETCH_STAGE.blif
+
+
+DECODE_STAGE_DEPS =
+
+DECODE_STAGE_wave: VERI_INCL = $(DECODE_STAGE_DEPS)
+DECODE_STAGE_wave: DECODE_STAGE.fst
+
+DECODE_STAGE_synth: VERI_INCL = $(DECODE_STAGE_DEPS)
+DECODE_STAGE_synth: DECODE_STAGE.blif
+
+
+CPU_DEPS = FETCH_STAGE.v DECODE_STAGE.v ALU_STAGE.v WRITEBACK_STAGE.v REGISTER_FILE.v
+
+CPU_wave: VERI_INCL = $(CPU_DEPS)
+CPU_wave: CPU.fst
+
+CPU_synth: VERI_INCL = $(CPU_DEPS)
+CPU_synth: CPU.blif
+
+
+SYSTEM_DEPS = MEMORY.v CPU.v $(CPU_DEPS)
+
+SYSTEM_wave: VERI_INCL = $(SYSTEM_DEPS)
+SYSTEM_wave: SYSTEM.fst
+
+SYSTEM_synth: VERI_INCL = $(SYSTEM_DEPS)
+SYSTEM_synth: SYSTEM.blif
+
+
+clean: clean_ clean-dir-ALU
 
 clean-dir-%: %
-	$(MAKE) -C $< clean
+	$(MAKE) -C $< clean_
