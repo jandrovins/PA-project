@@ -27,36 +27,38 @@ module CPU (
 				     .portD_key(portD_key),
 				     .portD_value(portD_data));
 
-	wire [31:0] current_program_counter, next_program_counter, branch_address;
-	wire branch_address_enable;
+	wire [31:0] current_program_counter, next_program_counter;
+	
+	wire [31:0] alu_branch_address_w;
+	wire alu_branch_enable_w;
 
-	FETCH_STAGE #(.INITIAL_PROGRAM_COUNTER(32'h10))
+	FETCH_STAGE #(.INITIAL_PC(32'h10))
 	fetch (.clk(clk), .reset(reset),
-	       .branch_address(branch_address),
-	       .branch_address_enable(branch_address_enable),
-	       .memory_data(memory_data_bus),
-	       .memory_address(memory_address_bus),
-	       .instruction_register(instruction_register),
-	       .next_program_counter(next_program_counter),
-	       .current_program_counter(current_program_counter));
+	       .fst_in_branch_address(alu_branch_address_w),
+	       .fst_in_branch_enable(alu_branch_enable_w),
+	       .fst_out_instr_address(memory_address_bus),
+	       .fst_in_instr(memory_data_bus),
+	       .fst_out_instr(instruction_register),
+	       .fst_out_pc(current_program_counter),
+	       .fst_out_pc_next(next_program_counter));
 
 	wire dest_register_enable_DA, dest_register_enable_AW;
 	wire [4:0] dest_register_number_DA, dest_register_number_AW;
-	wire [3:0] bypass1, bypass2;
 	wire [31:0] next_program_counter_DA, branch_dest;
+	wire [4:0] operand1_key, operand2_key;
 
 	DECODE_STAGE decode (.clk(clk), .reset(reset),
-			     .instruction_register(instruction_register),
-			     .kill_instr(branch_address_enable),
+			     .instr(instruction_register),
+			     .kill_instr(alu_branch_enable_w),
 			     .source1_register_key(port1_key),
 			     .source2_register_key(port2_key),
 			     .source1_register_value(port1_data),
 			     .source2_register_value(port2_data),
+			     .operand1_key(operand1_key),
+			     .operand2_key(operand2_key),
 			     .operand1(operand1),
 			     .operand2(operand2),
 			     .alu_operation(alu_operation),
-			     .bypass1(bypass1),
-			     .bypass2(bypass2),
 			     .dest_register_enable(dest_register_enable_DA),
 			     .dest_register_number(dest_register_number_DA),
 			     .in_passthrough_next_program_counter(next_program_counter),
@@ -64,16 +66,41 @@ module CPU (
 			     .current_program_counter(current_program_counter),
 			     .branch_dest(branch_dest));
 
+	wire [31:0] alu_src1, alu_src2;
+	wire [1:0] hu_src1_sel, hu_src2_sel;
+
+	HAZARD_UNIT hu (
+		.clk(clk),
+		.reset(reset),
+
+		.instr_src1_key(operand1_key),
+		.instr_src2_key(operand2_key),
+		.mst_rd_key(dest_register_number_AW),
+		.mst_rd_en(dest_register_enable_AW),
+		.wst_rd_key(portD_key),
+		.wst_rd_en(portD_enable),
+
+		.alu_src1_sel(hu_src1_sel),
+		.alu_src2_sel(hu_src2_sel)
+	);
+
+	assign alu_src1 = hu_src1_sel == 2'b00 ? operand1 :
+					  hu_src1_sel == 2'b01 ? portD_data:
+					  hu_src1_sel == 2'b10 ? alu_output:
+					  2'dx;
+	assign alu_src2 = hu_src2_sel == 2'b00 ? operand2 :
+					  hu_src2_sel == 2'b01 ? portD_data:
+					  hu_src2_sel == 2'b10 ? alu_output:
+					  2'dx; // NOT TESTED
+
 	ALU_STAGE alu (.clk(clk), .reset(reset),
-		       .input1(operand1), .input2(operand2),
+		       .input1(alu_src1), .input2(alu_src2),
 		       .next_program_counter(next_program_counter_DA),
 		       .branch_dest(branch_dest),
 		       .alu_operation(alu_operation),
-		       .bypass1(bypass1),
-		       .bypass2(bypass2),
 		       .alu_output(alu_output),
-		       .branch_address_enable(branch_address_enable),
-		       .branch_address(branch_address),
+		       .alu_out_branch_enable(alu_branch_enable_w),
+		       .alu_out_branch_address(alu_branch_address_w),
 		       .in_dest_register_enable(dest_register_enable_DA),
 		       .in_passthrough_dest_register_number(dest_register_number_DA),
 		       .out_dest_register_enable(dest_register_enable_AW),

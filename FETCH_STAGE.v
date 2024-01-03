@@ -1,40 +1,50 @@
 
 
 module FETCH_STAGE #(
-		     parameter INITIAL_PROGRAM_COUNTER = 32'h1000
+		     parameter INITIAL_PC = 32'h1000
 		    ) (
+			   // fst = Fetch stage
 		       input clk,
 		       input reset,
-		       input [31:0] branch_address,
-		       input branch_address_enable,
-		       input [31:0] memory_data,
 
-		       output [31:0] memory_address,
-		       output reg [31:0] instruction_register,
-		       output reg [31:0] current_program_counter,
-		       output reg [31:0] next_program_counter);
+			   // Wires from ALU
+		       input [31:0] fst_in_branch_address,
+		       input fst_in_branch_enable,
+
+			   // Wires to/from Register File
+		       output [31:0] fst_out_instr_address,
+		       input [31:0] fst_in_instr,
+
+			   // Out wires for decode
+		       output reg [31:0] fst_out_instr,
+		       output reg [31:0] fst_out_pc,
+		       output reg [31:0] fst_out_pc_next);
 
 `include "RISCV_constants.vinc"
 
-	wire [31:0] next_next_program_counter, next_instruction_register, next_memory_address;
+	wire [31:0] next_pc_next; // Beware when branch_address_enable is 1, this should hold the fst_in_branch_address + 4 bytes
+    wire [31:0] next_instr; // taken from memory, using rf_mem (output) and memory_data (input from memory). This assumes 1 clock memory, so shuold change eventually
 
-	assign next_next_program_counter = branch_address_enable == 1'b1 ? branch_address + 32'd4 :
-					   next_program_counter + 32'd4;
+	// Calculate next pc, taking into account if this is branch
+	assign next_pc_next = fst_in_branch_enable == 1'b1 ? fst_in_branch_address + 32'd4 :
+					   fst_out_pc_next + 32'd4;
 
-	assign next_instruction_register = memory_data;
+    // To take instruction register from memory
+	assign fst_out_instr_address = fst_in_branch_enable == 1'b1 ? fst_in_branch_address :
+				fst_out_pc_next;
 
-	assign memory_address = branch_address_enable == 1'b1 ? branch_address :
-				next_program_counter;
+    // Taken from memory
+	assign next_instr = fst_in_instr;
 
 	always @(posedge clk, posedge reset) begin
 		if (reset) begin
-			next_program_counter <= INITIAL_PROGRAM_COUNTER;
-			current_program_counter <= INITIAL_PROGRAM_COUNTER;
-			instruction_register <= NOP; // Send NOP
+			fst_out_pc_next <= INITIAL_PC;
+			fst_out_pc <= INITIAL_PC;
+			fst_out_instr <= NOP; // Send NOP
 		end else begin // if (reset)
-			next_program_counter <= next_next_program_counter;
-			instruction_register <= next_instruction_register;
-			current_program_counter <= next_program_counter;
+			fst_out_pc_next <= next_pc_next;
+			fst_out_instr <= next_instr;
+			fst_out_pc <= fst_out_pc_next;
 		end
 	end // always @ (posedge clk, posedge reset)
 

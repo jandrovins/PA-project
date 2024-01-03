@@ -2,7 +2,7 @@
 module DECODE_STAGE (
 		     input clk,
 		     input reset,
-		     input [31:0] instruction_register,
+		     input [31:0] instr,
 		     input kill_instr,
 
 		     input [31:0] source1_register_value,
@@ -11,12 +11,11 @@ module DECODE_STAGE (
 		     output [4:0] source1_register_key,
 		     output [4:0] source2_register_key,
 
+		     output reg [4:0] operand1_key,
+		     output reg [4:0] operand2_key,
 		     output reg [31:0] operand1,
 		     output reg [31:0] operand2,
 		     output reg [4:0] alu_operation,
-
-		     output reg [3:0] bypass1,
-		     output reg [3:0] bypass2,
 
 		     output reg dest_register_enable,
 		     output reg [4:0] dest_register_number,
@@ -35,33 +34,35 @@ module DECODE_STAGE (
 	wire [3:0] funct3;
 	wire next_dest_register_enable;
 
-	wire [11:0] immI, immS, immB;
+	wire [11:0] immI, immS;
 
 	wire [31:0] next_operand1, next_operand2;
-	wire [3:0] next_bypass1, next_bypass2;
 	wire [4:0] next_alu_operation;
 
-	wire [31:0] effective_instruction_register;
+	wire [31:0] effective_instr;
 
 	wire [31:0] debug;
 
-	assign effective_instruction_register = kill_instr == TRUE ? NOP :
-						instruction_register;
+	assign effective_instr = kill_instr == TRUE ? NOP :
+						instr;
 
-	assign opcode = effective_instruction_register[ 6: 0];
+	assign opcode = effective_instr[ 6: 0];
 
-	assign rd     = effective_instruction_register[11: 7];
-	assign rs1    = effective_instruction_register[19:15];
-	assign rs2    = effective_instruction_register[24:20];
-	assign funct7 = effective_instruction_register[31:25];
-	assign funct3 = effective_instruction_register[14:12];
+	assign rd     = effective_instr[11: 7];
+	assign rs1    = effective_instr[19:15];
+	assign rs2    = effective_instr[24:20];
+	assign funct7 = effective_instr[31:25];
+	assign funct3 = effective_instr[14:12];
 
-	assign immI = effective_instruction_register[31:20];
-	assign immS = {effective_instruction_register[31:25], effective_instruction_register[11:7]};
-	assign immB = {effective_instruction_register[31], effective_instruction_register[7], effective_instruction_register[30:25], effective_instruction_register[11:8], 1'b0};
+	assign immI = effective_instr[31:20];
+	assign immS = {effective_instr[31:25], effective_instr[11:7]};
 
 	wire [31:0] branch_offset;
-	assign branch_offset = {{20{immB[11]}}, immB};
+	assign branch_offset = { {20{effective_instr[31]}},
+		effective_instr[7],
+		effective_instr[30:25],
+		effective_instr[11:8],
+		1'b0  };
 
 	assign source1_register_key = rs1;
 	assign source2_register_key = rs2;
@@ -99,34 +100,29 @@ module DECODE_STAGE (
 					   opcode == JALR   ? rd :
 					   x0;
 
-	assign next_bypass1 = dest_register_enable && dest_register_number == source1_register_key ? BYPASS_FROM_ALU :
-			      NO_BYPASS;
-
-	assign next_bypass2 = dest_register_enable && dest_register_number == source2_register_key ? BYPASS_FROM_ALU :
-			      NO_BYPASS;
 
 	wire [31:0] next_branch_dest;
 	assign next_branch_dest = current_program_counter + branch_offset;
 
 	always @(posedge clk, posedge reset) begin
 		if (reset) begin
+		    operand1_key <= 32'b0;
+		    operand2_key <= 32'b0;
 			operand1 <= 32'b0;
 			operand2 <= 32'b0;
 			alu_operation <= ADDITION;
 			dest_register_enable <= FALSE;
 			dest_register_number <= x0;
-			bypass1 <= NO_BYPASS;
-			bypass2 <= NO_BYPASS;
 			out_passthrough_next_program_counter <= 32'b0;
 			branch_dest <= 32'b0;
 		end else begin // if (reset)
+		    operand1_key <= source1_register_key;
+		    operand2_key <= source2_register_key;
 			operand1 <= next_operand1;
 			operand2 <= next_operand2;
 			alu_operation <= next_alu_operation;
 			dest_register_enable <= next_dest_register_enable;
 			dest_register_number <= next_dest_register_number;
-			bypass1 <= next_bypass1;
-			bypass2 <= next_bypass2;
 			out_passthrough_next_program_counter <= in_passthrough_next_program_counter;
 			branch_dest <= next_branch_dest;
 		end

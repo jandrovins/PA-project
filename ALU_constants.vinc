@@ -4,6 +4,3 @@ localparam [4:0]       ADDITION = 4'h0,
 		 MULTIPLICATION = 4'h2,
 		    UNCOND_JUMP = 4'h3,
 		   COND_EQ_JUMP = 4'h4;
-
-localparam [3:0]       NO_BYPASS = 4'h0,
-	   	 BYPASS_FROM_ALU = 4'h1;
