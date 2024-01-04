@@ -3,30 +3,44 @@ module HAZARD_UNIT (
 		input clk,
 		input reset,
 
-		input [4:0] instr_src1_key,
-		input [4:0] instr_src2_key,
+        input [4:0] if_in_rs1_key_l,
+        input [4:0] if_in_rs2_key_l,
 
-		input [4:0] mst_rd_key,
-		input       mst_rd_en, // enabled if if will write
+		input [4:0] id_in_rs1_key_l,
+		input [4:0] id_in_rs2_key_l,
+        input [4:0] id_in_rd_key_l,
+        input       id_in_rd_is_lw_en_l, // enabled if it is a lw instr - i.e., if it will write in regfile from the mem
 
-		input [4:0] wst_rd_key,
-		input       wst_rd_en, // enabled if if will write
+		input [4:0] mem_in_rd_key_l,
+		input       mem_in_rd_en_l, // enabled if it will write
 
-		// when we have Memory stage input [3:0] mst_rd_key,
-		// when we have Memory stage input       mst_rd_enable,
+		input [4:0] wb_in_rd_key_l,
+		input       wb_in_rd_en_l, // enabled if it will write
 
-		output [1:0] alu_src1_sel,
-		output [1:0] alu_src2_sel);
+		output [1:0] hu_out_alu_rs1_sel_w,
+		output [1:0] hu_out_alu_rs2_sel_w,
 
+        output       hu_out_stall_if_en_w,
+        output       hu_out_stall_id_en_w,
+        output       hu_out_flush_ex_en_w
+        );
+
+    wire hu_lw_causes_stall;
 
  	// memory has priority because is earliear in the pipeline
-	assign alu_src1_sel = ((instr_src1_key == mst_rd_key) && mst_rd_en) && (instr_src1_key != 0) ? 2'b10 :
-								 	 ((instr_src1_key == wst_rd_key) && wst_rd_en) && (instr_src1_key != 0) ? 2'b01 :
+	assign hu_out_alu_rs1_sel_w = ((id_in_rs1_key_l == mem_in_rd_key_l) && mem_in_rd_en_l) && (id_in_rs1_key_l != 0) ? 2'b10 :
+								 	 ((id_in_rs1_key_l == wb_in_rd_key_l) && wb_in_rd_en_l) && (id_in_rs1_key_l != 0) ? 2'b01 :
 									 2'b00;
 
  	// memory has priority because is earliear in the pipeline
-	assign alu_src2_sel = ((instr_src2_key == mst_rd_key) && mst_rd_en) && (instr_src2_key != 0) ? 2'b10 :
-								 	 ((instr_src2_key == wst_rd_key) && wst_rd_en) && (instr_src2_key != 0) ? 2'b01 :
+	assign hu_out_alu_rs2_sel_w = ((id_in_rs2_key_l == mem_in_rd_key_l) && mem_in_rd_en_l) && (id_in_rs2_key_l != 0) ? 2'b10 :
+								 	 ((id_in_rs2_key_l == wb_in_rd_key_l) && wb_in_rd_en_l) && (id_in_rs2_key_l != 0) ? 2'b01 :
 									 2'b00;
+
+    assign hu_lw_causes_stall_w = id_in_rd_is_lw_en_l & ((id_in_rd_key_l == if_in_rs1_key_l) | (id_in_rd_key_l == if_in_rs2_key_l));
+
+    assign hu_out_stall_if_en_w = hu_lw_causes_stall_w;
+    assign hu_out_stall_id_en_w = hu_lw_causes_stall_w;
+    assign hu_out_flush_ex_en_w = hu_lw_causes_stall_w;
 
 endmodule
