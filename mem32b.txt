@@ -4,7 +4,7 @@
 00 03 00 03
 // COUNTER LOOP
 00 00 07 13 // addi x14,zero,0
-00 a0 06 13 // addi x12,zero,1010
+00 a0 06 13 // addi x12,zero,10
 00 10 06 93 // addi x13,zero,1
 00 e6 87 33 // add x14,x13,x14
 00 16 86 93 // addi x13,x13,1
