@@ -1,6 +1,6 @@
 
 module CPU_tb();
-	reg clk=0;
+	reg clk=1;
 	always #1 clk = ~clk;  // Create clock with period=2
 
 	reg reset;
@@ -12,7 +12,7 @@ module CPU_tb();
 		reset = 1;
 		#11 reset = 0;
 
-		#19 $finish;
+		#99 $finish;
 	end
 endmodule // CPU_tb
 

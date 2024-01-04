@@ -1,6 +1,11 @@
 
 localparam [4:0]       ADDITION = 4'h0,
-		    SUBTRACTION = 4'h1,
-		 MULTIPLICATION = 4'h2,
-		    UNCOND_JUMP = 4'h3,
-		   COND_EQ_JUMP = 4'h4;
+		    SUBTRACTION  = 4'h1,
+		 MULTIPLICATION  = 4'h2,
+		    	ALU_JALR = 4'h3,
+		        ALU_BEQ  = 4'h4,
+		        ALU_BLT  = 4'h5,
+		        ALU_BNE  = 4'h6,
+		        ALU_BGE  = 4'h7,
+		        ALU_BLTU = 4'h8,
+		        ALU_BGEU = 4'h9;

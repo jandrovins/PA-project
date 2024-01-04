@@ -80,8 +80,12 @@ module DECODE_STAGE (
 				    opcode == OP_IMM && funct3 == 3'b0			? ADDITION : // ADDI
 				    opcode == OP && funct3 == 3'b0 && funct7 == 7'h20	? SUBTRACTION : // SUB
 				    opcode == OP && funct3 == 3'b0 && funct7 == 7'h01	? MULTIPLICATION : // MUL
-				    opcode == JALR && funct3 == 3'b0			? UNCOND_JUMP : // JALR
-				    opcode == BRANCH && funct3 == 3'b0			? COND_EQ_JUMP : // BEQ
+				    opcode == JALR && funct3 == 3'b0			? ALU_JALR : // JALR
+				    opcode == BRANCH && funct3 == 3'b000			? ALU_BEQ : // BEQ
+				    opcode == BRANCH && funct3 == 3'b100			? ALU_BLT : // BLT
+				    opcode == BRANCH && funct3 == 3'b101			? ALU_BGE : // BGE
+				    opcode == BRANCH && funct3 == 3'b110			? ALU_BLTU : // BLTU
+				    opcode == BRANCH && funct3 == 3'b111			? ALU_BGEU : // BGEU
 				    ADDITION;
 
 	assign next_dest_register_enable = opcode == OP     ? TRUE  :

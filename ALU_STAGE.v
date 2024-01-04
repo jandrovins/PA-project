@@ -28,21 +28,31 @@ module ALU_STAGE (
 	wire [31:0] next_alu_output;
 
 	assign next_alu_output = alu_operation == ADDITION ? input1 + input2 :
-				 alu_operation == SUBTRACTION ? input1 - input2 :
-				 alu_operation == MULTIPLICATION ? input1 * input2 :
-				 alu_operation == UNCOND_JUMP ? next_program_counter :
-				 32'b0;
+				 			 alu_operation == SUBTRACTION ? input1 - input2 :
+				 			 alu_operation == MULTIPLICATION ? input1 * input2 :
+				 			 alu_operation == ALU_JALR ? next_program_counter :
+				 			 32'b0;
 
 	wire next_branch_enable;
 	wire [31:0] next_branch_address;
 
-	assign next_branch_enable = alu_operation == UNCOND_JUMP ? TRUE :
-					    alu_operation == COND_EQ_JUMP && input1 == input2 ? TRUE :
-					    FALSE;
+	assign next_branch_enable = alu_operation == ALU_JALR                                                      ? TRUE :
+					    		alu_operation == ALU_BEQ  && ( input1 == input2                              ) ? TRUE :
+				        		alu_operation == ALU_BNE  && ( input1 != input2                              ) ? TRUE :
+					    		alu_operation == ALU_BLT  && ((input1 <  input2) ^ (input1[31] != input2[31])) ? TRUE :
+				        		alu_operation == ALU_BGE  && ((input1 >= input2) ^ (input1[31] != input2[31])) ? TRUE :
+				        		alu_operation == ALU_BLTU && ( input1 <  input2                              ) ? TRUE :
+				        		alu_operation == ALU_BGEU && ( input1 >= input2                              ) ? TRUE :
+					    		FALSE;
 
-	assign next_branch_address = alu_operation == UNCOND_JUMP ? input1 + input2 :
-				     alu_operation == COND_EQ_JUMP ? branch_dest :
-				     32'b0;
+	assign next_branch_address = alu_operation == ALU_JALR ? input1 + input2 :
+				     			 alu_operation == ALU_BEQ  ? branch_dest :
+				     			 alu_operation == ALU_BLT  ? branch_dest :
+				     			 alu_operation == ALU_BNE  ? branch_dest :
+				     			 alu_operation == ALU_BGE  ? branch_dest :
+				     			 alu_operation == ALU_BLTU ? branch_dest :
+				     			 alu_operation == ALU_BGEU ? branch_dest :
+				     			 32'b0;
 
 	wire next_out_dest_register_enable;
 	// To kill the instruction: don't write in the register file

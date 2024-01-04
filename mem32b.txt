@@ -2,6 +2,15 @@
 00 01 00 01
 00 02 00 02
 00 03 00 03
+// COUNTER LOOP
+00 00 07 13 // addi x14,zero,0
+00 a0 06 13 // addi x12,zero,1010
+00 10 06 93 // addi x13,zero,1
+00 e6 87 33 // add x14,x13,x14
+00 16 86 93 // addi x13,x13,1
+fe c6 cc e3 // blt x13,a2,-8
+fd 47 0f 13 // addi x30,x14,-44 - result should be 0
+00 00 50 63 // bge zero,zero,0 - idle
 // OTHER PROGRAM
 00 80 00 93 // addi x1, x0,  8
 fe 10 0e e3 // beq  x0, x1, -4
@@ -15,12 +24,3 @@ fd 9f f0 6f // beq  x0, x0, -16
 00 a0 00 93
 00 0c 00 0c
 00 0d 00 0d
-// COUNTER LOOP
-00 00 07 13 // addi x14,zero,0
-00 a0 06 13 // addi x12,zero,1010
-00 10 06 93 // addi x13,zero,1
-00 e6 87 33 // add x14,x13,x14
-00 16 86 93 // addi x13,x13,1
-fe c6 cc e3 // blt x13,a2,-4
-fd 47 0f 13 // addi x30,x14,-44 - result should be 0
-00 00 50 63 // bge zero,zero,0 - idle
