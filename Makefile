@@ -8,6 +8,15 @@ all_waves: FETCH_STAGE_wave CPU_wave SYSTEM_wave
 all_synth: FETCH_STAGE_synth
 
 
+MEMORY_DEPS =
+
+MEMORY_wave: VERI_INCL = $(MEMORY_DEPS)
+MEMORY_wave: MEMORY.fst
+
+MEMORY_synth: VERI_INCL = $(MEMORY_DEPS)
+MEMORY_synth: MEMORY.blif
+
+
 FETCH_STAGE_DEPS = MEMORY.v
 
 FETCH_STAGE_wave: VERI_INCL = $(FETCH_STAGE_DEPS)

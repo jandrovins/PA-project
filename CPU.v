@@ -3,8 +3,8 @@ module CPU (
 	    input clk,
 	    input reset,
 
-	    input [31:0] memory_data_bus,
-	    output [31:0] memory_address_bus
+	    input [31:0] memory_data_bus1,
+	    output [31:0] memory_address_bus1
 	    );
 
 
@@ -36,8 +36,8 @@ module CPU (
 	fetch (.clk(clk), .reset(reset),
 	       .fst_in_branch_address(alu_branch_address_w),
 	       .fst_in_branch_enable(alu_branch_enable_w),
-	       .fst_out_instr_address(memory_address_bus),
-	       .fst_in_instr(memory_data_bus),
+	       .fst_out_instr_address(memory_address_bus1),
+	       .fst_in_instr(memory_data_bus1),
 	       .fst_out_instr(instruction_register),
 	       .fst_out_pc(current_program_counter),
 	       .fst_out_pc_next(next_program_counter));
