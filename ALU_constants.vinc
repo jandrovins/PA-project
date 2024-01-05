@@ -8,4 +8,6 @@ localparam [4:0]       ADDITION = 4'h0,
 		        ALU_BNE  = 4'h6,
 		        ALU_BGE  = 4'h7,
 		        ALU_BLTU = 4'h8,
-		        ALU_BGEU = 4'h9;
+		        ALU_BGEU = 4'h9,
+		        MEM_WORD = 4'ha,
+		        MEM_BYTE = 4'hb;

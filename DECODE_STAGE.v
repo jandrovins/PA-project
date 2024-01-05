@@ -23,7 +23,8 @@ module DECODE_STAGE (
 		     input [31:0] in_passthrough_next_program_counter,
 		     output reg [31:0] out_passthrough_next_program_counter,
 		     input [31:0] current_program_counter,
-		     output reg [31:0] branch_dest);
+		     output reg [31:0] branch_dest,
+		     output reg [31:0] source2_reg_value);
 
 `include "RISCV_constants.vinc"
 `include "ALU_constants.vinc"
@@ -119,6 +120,7 @@ module DECODE_STAGE (
 			dest_register_number <= x0;
 			out_passthrough_next_program_counter <= 32'b0;
 			branch_dest <= 32'b0;
+			source2_reg_value <= 32'b0;
 		end else begin // if (reset)
 		    operand1_key <= source1_register_key;
 		    operand2_key <= source2_register_key;
@@ -129,6 +131,7 @@ module DECODE_STAGE (
 			dest_register_number <= next_dest_register_number;
 			out_passthrough_next_program_counter <= in_passthrough_next_program_counter;
 			branch_dest <= next_branch_dest;
+			source2_reg_value <= source2_register_value;
 		end
 	end // always @ (posedge clk, posedge reset)
 

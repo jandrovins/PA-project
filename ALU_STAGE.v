@@ -19,7 +19,11 @@ module ALU_STAGE (
 
 		  input [31:0] next_program_counter,
 		  output reg alu_out_branch_enable,
-		  output reg [31:0] alu_out_branch_address);
+		  output reg [31:0] alu_out_branch_address,
+
+		  output reg [4:0] out_passthrough_operation,
+		  input [31:0] in_passthrough_source2_reg_value,
+		  output reg [31:0] out_passthrough_source2_reg_value);
 
 `include "STD_constants.vinc"
 `include "ALU_constants.vinc"
@@ -66,12 +70,16 @@ module ALU_STAGE (
 			out_passthrough_dest_register_number <= x0;
 			alu_out_branch_enable <= FALSE;
 			alu_out_branch_address <= 32'b0;
+			out_passthrough_source2_reg_value <= 5'b0;
+			out_passthrough_operation <= 5'b0;
 		end else begin // if (reset)
 			alu_output <= next_alu_output;
 			out_dest_register_enable <= next_out_dest_register_enable;
 			out_passthrough_dest_register_number <= in_passthrough_dest_register_number;
 			alu_out_branch_enable <= next_branch_enable;
 			alu_out_branch_address <= next_branch_address;
+			out_passthrough_source2_reg_value <= in_passthrough_source2_reg_value;
+			out_passthrough_operation <= alu_operation;
 		end
 	end // always @ (posedge clk, posedge reset)
 

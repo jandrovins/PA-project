@@ -48,7 +48,7 @@ module CPU (
 
 	wire dest_register_enable_DA, dest_register_enable_AW;
 	wire [4:0] dest_register_number_DA, dest_register_number_AW;
-	wire [31:0] next_program_counter_DA, branch_dest;
+	wire [31:0] next_program_counter_DA, branch_dest, source2_reg_value_DE;
 	wire [4:0] operand1_key, operand2_key;
 
 	DECODE_STAGE decode (.clk(clk), .reset(reset),
@@ -68,9 +68,10 @@ module CPU (
 			     .in_passthrough_next_program_counter(next_program_counter),
 			     .out_passthrough_next_program_counter(next_program_counter_DA),
 			     .current_program_counter(current_program_counter),
-			     .branch_dest(branch_dest));
+			     .branch_dest(branch_dest),
+			     .source2_reg_value(source2_reg_value_DE));
 
-	wire [31:0] alu_src1, alu_src2;
+	wire [31:0] alu_src1, alu_src2, alu_src3;
 	wire [1:0] hu_src1_sel, hu_src2_sel;
 
 	HAZARD_UNIT hu (
@@ -96,8 +97,13 @@ module CPU (
 					  hu_src2_sel == 2'b01 ? portD_data:
 					  hu_src2_sel == 2'b10 ? alu_output:
 					  2'dx; // NOT TESTED
+	assign alu_src3 = hu_src2_sel == 2'b00 ? source2_reg_value_DE :
+					  hu_src2_sel == 2'b01 ? portD_data:
+					  hu_src2_sel == 2'b10 ? alu_output:
+					  2'dx; // NOT TESTED
 
 	wire [4:0] alu_mem_control_EX_MEM;
+	wire [31:0] source2_reg_value_EM;
 
 	ALU_STAGE alu (.clk(clk), .reset(reset),
 		       .input1(alu_src1), .input2(alu_src2),
@@ -111,7 +117,9 @@ module CPU (
 		       .in_passthrough_dest_register_number(dest_register_number_DA),
 		       .out_dest_register_enable(dest_register_enable_AW),
 		       .out_passthrough_dest_register_number(dest_register_number_AW),
-		       .out_passthrough_operation(alu_mem_control_EX_MEM));
+		       .out_passthrough_operation(alu_mem_control_EX_MEM),
+		       .in_passthrough_source2_reg_value(alu_src3),
+		       .out_passthrough_source2_reg_value(source2_reg_value_EM));
 
 	wire [31:0] dest_register_value_MEM_WB;
 	wire dest_register_write_enable_MEM_WB;
@@ -124,20 +132,20 @@ module CPU (
 			  .ex_in_rd_en_l(dest_register_enable_AW),
 			  .ex_in_rd_key_l(dest_register_number_AW),
 
-			  .ex_in_store_register_w(), // TODO
+			  .ex_in_store_register_w(source2_reg_value_EM),
 
 			  .mem_out_rd_value_l(dest_register_value_MEM_WB),
 			  .mem_out_rd_en_l(dest_register_write_enable_MEM_WB),
-			  .mem_out_rd_key_l(dest_register_key_MEM),
+			  .mem_out_rd_key_l(dest_register_key_MEM_WB),
 
 			  .mem_out_memory_we2_l(memory_write_enable2),
 			  .mem_out_memory_address_l(memory_address_bus2),
-			  .mem_out_memory_data_l(memory_data_bus2),
+			  .mem_out_memory_data_l(memory_data_bus2));
 
 	WRITEBACK_STAGE wb (.clk(clk), .reset(reset),
 			    .enable(dest_register_write_enable_MEM_WB),
 			    .is_dest_special(FALSE),
-			    .dest_register(dest_register_key_MEM),
+			    .dest_register(dest_register_key_MEM_WB),
 			    .result(dest_register_value_MEM_WB),
 
 			    .portD_enable(portD_enable),

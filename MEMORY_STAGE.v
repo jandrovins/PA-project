@@ -20,7 +20,7 @@ module MEMORY_STAGE(input clk,
 		    inout      [31:0] mem_out_memory_data_l
 		    );
 
-`include "MEM_constants.vinc"
+`include "ALU_constants.vinc"
 `include "STD_constants.vinc"
 `include "RISCV_constants.vinc"
 
@@ -28,9 +28,9 @@ module MEMORY_STAGE(input clk,
 	assign next_mem_out_rd_key_l = ex_in_rd_key_l;
 
 	wire next_mem_out_rd_en_l;
-	assign mem_out_rd_en_l = ex_in_rd_en_l;
+	assign next_mem_out_rd_en_l = ex_in_rd_en_l;
 
-	wire [31:0] next_mem_out_memory_address_l
+	wire [31:0] next_mem_out_memory_address_l;
 	assign next_mem_out_memory_address_l = ex_in_alu_output_l;
 
 	wire [31:0] next_mem_out_rd_value_l;
@@ -45,7 +45,7 @@ module MEMORY_STAGE(input clk,
 	wire [31:0] next_memory_data_latch;
 
 	assign next_memory_data_latch = ex_in_rd_en_l ? ex_in_store_register_w : 32'bz;
-	assign memory_data = memory_data_latch;
+	assign mem_out_memory_data_l = memory_data_latch;
 
 
 	always @(posedge clk, posedge reset) begin
