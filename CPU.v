@@ -4,7 +4,11 @@ module CPU (
 	    input reset,
 
 	    input [31:0] memory_data_bus1,
-	    output [31:0] memory_address_bus1
+	    output [31:0] memory_address_bus1,
+
+	    input memory_write_enable2,
+	    inout [31:0] memory_data_bus2,
+	    output [31:0] memory_address_bus2
 	    );
 
 
@@ -93,6 +97,8 @@ module CPU (
 					  hu_src2_sel == 2'b10 ? alu_output:
 					  2'dx; // NOT TESTED
 
+	wire [4:0] alu_mem_control_EX_MEM;
+
 	ALU_STAGE alu (.clk(clk), .reset(reset),
 		       .input1(alu_src1), .input2(alu_src2),
 		       .next_program_counter(next_program_counter_DA),
@@ -104,13 +110,35 @@ module CPU (
 		       .in_dest_register_enable(dest_register_enable_DA),
 		       .in_passthrough_dest_register_number(dest_register_number_DA),
 		       .out_dest_register_enable(dest_register_enable_AW),
-		       .out_passthrough_dest_register_number(dest_register_number_AW));
+		       .out_passthrough_dest_register_number(dest_register_number_AW),
+		       .out_passthrough_operation(alu_mem_control_EX_MEM));
+
+	wire [31:0] dest_register_value_MEM_WB;
+	wire dest_register_write_enable_MEM_WB;
+	wire [4:0] dest_register_key_MEM_WB;
+
+	MEMORY_STAGE mem (.clk(clk), .reset(reset),
+			  .ex_in_operation_l(alu_mem_control_EX_MEM),
+
+			  .ex_in_alu_output_l(alu_output),
+			  .ex_in_rd_en_l(dest_register_enable_AW),
+			  .ex_in_rd_key_l(dest_register_number_AW),
+
+			  .ex_in_store_register_w(), // TODO
+
+			  .mem_out_rd_value_l(dest_register_value_MEM_WB),
+			  .mem_out_rd_en_l(dest_register_write_enable_MEM_WB),
+			  .mem_out_rd_key_l(dest_register_key_MEM),
+
+			  .mem_out_memory_we2_l(memory_write_enable2),
+			  .mem_out_memory_address_l(memory_address_bus2),
+			  .mem_out_memory_data_l(memory_data_bus2),
 
 	WRITEBACK_STAGE wb (.clk(clk), .reset(reset),
-			    .enable(dest_register_enable_AW),
+			    .enable(dest_register_write_enable_MEM_WB),
 			    .is_dest_special(FALSE),
-			    .dest_register(dest_register_number_AW),
-			    .result(alu_output),
+			    .dest_register(dest_register_key_MEM),
+			    .result(dest_register_value_MEM_WB),
 
 			    .portD_enable(portD_enable),
 			    .portD_key(portD_key),

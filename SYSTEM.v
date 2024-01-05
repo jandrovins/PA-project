@@ -13,7 +13,14 @@ module SYSTEM (
 					 .memory_address2(memory_address_bus2),
 					 .memory_data2(memory_data_bus2));
 
-	CPU cpu (.reset(reset), .clk(clk), .memory_address_bus1(memory_address_bus1), .memory_data_bus1(memory_data_bus1));
+	CPU cpu (.reset(reset), .clk(clk),
+		 .memory_address_bus1(memory_address_bus1),
+		 .memory_data_bus1(memory_data_bus1),
+
+		 .memory_address_bus2(memory_address_bus2),
+		 .memory_data_bus2(memory_data_bus2),
+		 .memory_write_enable2(memory_write_enable2)
+		 );
 
 
 endmodule
