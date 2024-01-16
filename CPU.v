@@ -42,6 +42,11 @@ module CPU (
 	       .fst_out_pc(current_program_counter),
 	       .fst_out_pc_next(next_program_counter));
 
+//####################################################//
+//poner acá los latches de fetch a decode (always)
+//####################################################//
+
+
 	wire dest_register_enable_DA, dest_register_enable_AW;
 	wire [4:0] dest_register_number_DA, dest_register_number_AW;
 	wire [31:0] next_program_counter_DA, branch_dest;
