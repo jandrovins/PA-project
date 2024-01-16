@@ -46,6 +46,11 @@ module CPU (
 	       .fst_out_pc(current_program_counter),
 	       .fst_out_pc_next(next_program_counter));
 
+//####################################################//
+//poner acá los latches de fetch a decode (always)
+//####################################################//
+
+
 	wire dest_register_enable_DA, dest_register_enable_AW;
 	wire [4:0] dest_register_number_DA, dest_register_number_AW;
 	wire [31:0] next_program_counter_DA, branch_dest, source2_reg_value_DE;
@@ -71,31 +76,53 @@ module CPU (
 			     .branch_dest(branch_dest),
 			     .source2_reg_value(source2_reg_value_DE));
 
+    wire [4:0]  if_instr_rs1_key_w;
+    wire [4:0]  if_instr_rs2_key_w;
 	wire [31:0] alu_src1, alu_src2, alu_src3;
-	wire [1:0] hu_src1_sel, hu_src2_sel;
+	wire [1:0]  hu_alu_src1_sel, hu_alu_src2_sel;
+    wire [4:0]  ex_from_id_rd_key_l;
+    wire        ex_from_id_rd_en_l;
+    wire        hu_stall_if_en_w;
+    wire        hu_stall_id_en_w;
+    wire        hu_flush_ex_en_w;
+
+    assign if_instr_rs1_key_w = instruction_register;
+    assign if_instr_rs2_key_w = instruction_register;
 
 	HAZARD_UNIT hu (
 		.clk(clk),
 		.reset(reset),
 
-		.instr_src1_key(operand1_key),
-		.instr_src2_key(operand2_key),
-		.mst_rd_key(dest_register_number_AW),
-		.mst_rd_en(dest_register_enable_AW),
-		.wst_rd_key(portD_key),
-		.wst_rd_en(portD_enable),
+        .if_in_rs1_key_l(if_instr_rs1_key_w),
+        .if_in_rs2_key_l(if_instr_rs2_key_w),
 
-		.alu_src1_sel(hu_src1_sel),
-		.alu_src2_sel(hu_src2_sel)
+
+        .id_in_rs1_key_l(operand1_key),
+        .id_in_rs2_key_l(operand2_key),
+        .id_in_rd_key_l   (dest_register_number_DA),
+        .id_in_rd_is_lw_en_l(dest_register_enable_DA),
+
+        .mem_in_rd_key_l(dest_register_number_AW),
+        .mem_in_rd_en_l (dest_register_enable_AW),
+
+        .wb_in_rd_key_l(portD_key),
+        .wb_in_rd_en_l (portD_enable), 
+
+        .hu_out_alu_rs1_sel_w(hu_alu_src1_sel),
+        .hu_out_alu_rs2_sel_w(hu_alu_src2_sel),
+
+        .hu_out_stall_if_en_w(hu_stall_if_en_w),
+        .hu_out_stall_id_en_w(hu_stall_id_en_w),
+        .hu_out_flush_ex_en_w(hu_flush_ex_en_w)
 	);
 
-	assign alu_src1 = hu_src1_sel == 2'b00 ? operand1 :
-					  hu_src1_sel == 2'b01 ? portD_data:
-					  hu_src1_sel == 2'b10 ? alu_output:
+	assign alu_src1 = hu_alu_src1_sel == 2'b00 ? operand1 :
+					  hu_alu_src1_sel == 2'b01 ? portD_data:
+					  hu_alu_src1_sel == 2'b10 ? alu_output:
 					  2'dx;
-	assign alu_src2 = hu_src2_sel == 2'b00 ? operand2 :
-					  hu_src2_sel == 2'b01 ? portD_data:
-					  hu_src2_sel == 2'b10 ? alu_output:
+	assign alu_src2 = hu_alu_src2_sel == 2'b00 ? operand2 :
+					  hu_alu_src2_sel == 2'b01 ? portD_data:
+					  hu_alu_src2_sel == 2'b10 ? alu_output:
 					  2'dx; // NOT TESTED
 	assign alu_src3 = hu_src2_sel == 2'b00 ? source2_reg_value_DE :
 					  hu_src2_sel == 2'b01 ? portD_data:
