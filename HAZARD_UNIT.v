@@ -24,8 +24,9 @@ module HAZARD_UNIT (
         output       hu_out_stall_id_en_w,
         output       hu_out_flush_ex_en_w
         );
+		// TODO: Bypass from memory out to memory in, to optimize LW x5, 0(x10), ST x5, 0(x11) which is a memcpy gg
 
-    wire hu_lw_causes_stall;
+    wire hu_lw_causes_stall_w;
 
  	// memory has priority because is earliear in the pipeline
 	assign hu_out_alu_rs1_sel_w = ((id_in_rs1_key_l == mem_in_rd_key_l) && mem_in_rd_en_l) && (id_in_rs1_key_l != 0) ? 2'b10 :

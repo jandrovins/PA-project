@@ -6,13 +6,14 @@ module CPU (
 	    input [31:0] memory_data_bus1,
 	    output [31:0] memory_address_bus1,
 
-	    input memory_write_enable2,
+	    output memory_write_enable2,
 	    inout [31:0] memory_data_bus2,
 	    output [31:0] memory_address_bus2
 	    );
 
 
 `include "STD_constants.vinc"
+`include "CPU_CONFIG.vinc"
 
 	wire [31:0] instruction_register, port1_data, port2_data, portD_data, operand1, operand2, alu_output;
 
@@ -30,26 +31,57 @@ module CPU (
 				     .portD_enable(portD_enable),
 				     .portD_key(portD_key),
 				     .portD_value(portD_data));
-
-	wire [31:0] current_program_counter, next_program_counter;
 	
+
+	//#########################################//
+	//########### FETCH STAGE BEGIN ###########//
+	//#########################################//
+
 	wire [31:0] alu_branch_address_w;
 	wire alu_branch_enable_w;
 
-	FETCH_STAGE #(.INITIAL_PC(32'h10))
-	fetch (.clk(clk), .reset(reset),
-	       .fst_in_branch_address(alu_branch_address_w),
-	       .fst_in_branch_enable(alu_branch_enable_w),
-	       .fst_out_instr_address(memory_address_bus1),
-	       .fst_in_instr(memory_data_bus1),
-	       .fst_out_instr(instruction_register),
-	       .fst_out_pc(current_program_counter),
-	       .fst_out_pc_next(next_program_counter));
+	reg [31:0] f_pc;
+	wire [31:0] f_pc_plus4;
+	wire [31:0] next_f_pc;
+	wire [31:0] f_instr;
 
-//####################################################//
-//poner acá los latches de fetch a decode (always)
-//####################################################//
+	assign next_f_pc = alu_branch_enable_w ? alu_branch_address_w :
+						f_pc_plus_4;
 
+	always @(posedge clk, posedge reset) begin
+		if (reset) begin
+			f_pc <= INITIAL_PC;
+		end else begin // if (reset)
+			f_pc <= next_f_pc;
+		end
+	end // always @ (posedge clk, posedge reset)
+
+	FETCH_STAGE fetch (.f_in_pc(f_pc),
+	       .f_in_mem_instr(memory_data_bus1),
+	       .f_out_mem_instr_address(memory_address_bus1),
+	       .f_out_instr(f_instr),
+	       .f_out_pc_plus4(f_pc_plus4));
+
+	reg [31:0] d_pc;
+	reg [31:0] d_pc_plus4;
+	reg [31:0] d_instr;
+
+	always @(posedge clk, posedge reset) begin
+		if (reset) begin
+			d_pc <= INITIAL_PC;
+			d_next_pc <= INITIAL_PC;
+			d_instr <= NOP; // Send NOP
+		end else begin // if (reset)
+			d_pc <= f_pc;
+			d_pc_plus4 <= f_pc_plus4;
+			d_instr <= f_instr;
+		end
+	end // always @ (posedge clk, posedge reset)
+
+	//#########################################//
+	//############ FETCH STAGE END ############//
+	//############ DECODE STAGE BEGIN #########//
+	//#########################################//
 
 	wire dest_register_enable_DA, dest_register_enable_AW;
 	wire [4:0] dest_register_number_DA, dest_register_number_AW;
@@ -124,9 +156,9 @@ module CPU (
 					  hu_alu_src2_sel == 2'b01 ? portD_data:
 					  hu_alu_src2_sel == 2'b10 ? alu_output:
 					  2'dx; // NOT TESTED
-	assign alu_src3 = hu_src2_sel == 2'b00 ? source2_reg_value_DE :
-					  hu_src2_sel == 2'b01 ? portD_data:
-					  hu_src2_sel == 2'b10 ? alu_output:
+	assign alu_src3 = hu_alu_src2_sel == 2'b00 ? source2_reg_value_DE :
+					  hu_alu_src2_sel == 2'b01 ? portD_data:
+					  hu_alu_src2_sel == 2'b10 ? alu_output:
 					  2'dx; // NOT TESTED
 
 	wire [4:0] alu_mem_control_EX_MEM;
