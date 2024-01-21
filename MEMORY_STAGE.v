@@ -1,14 +1,8 @@
-// Naming convention: origen_direction_name_latchOrWire
-
-module MEMORY_STAGE(input clk,
-		    input reset,
-
-		    input [ 4:0] ex_in_operation_l,
-
+module MEMORY_STAGE(
+            input [ 4:0] ex_in_operation_l,
 		    input [31:0] ex_in_alu_output_l,
 		    input        ex_in_rd_en_l,
 		    input [ 4:0] ex_in_rd_key_l,
-
 		    input [31:0] ex_in_store_register_w,
 
 		    output reg [31:0] mem_out_rd_value_l,
@@ -19,9 +13,6 @@ module MEMORY_STAGE(input clk,
 		    output reg [31:0] mem_out_memory_address_l,
 		    inout      [31:0] mem_out_memory_data_l
 		    );
-
-`include "ALU_constants.vinc"
-`include "STD_constants.vinc"
 `include "RISCV_constants.vinc"
 
 	wire [4:0] next_mem_out_rd_key_l;

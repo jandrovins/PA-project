@@ -14,7 +14,6 @@ module WRITEBACK_STAGE (
 			);
 
 `include "RISCV_constants.vinc"
-`include "STD_constants.vinc"
 
 	wire next_portD_enable;
 	wire [4:0] next_portD_key;

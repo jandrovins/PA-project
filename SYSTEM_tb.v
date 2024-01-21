@@ -9,8 +9,8 @@ module SYSTEM_tb();
 	initial begin
 		$dumpvars(0, SYSTEM_tb);
 		reset = 1;
-		#1 reset = 0;
+		#10 reset = 0;
 
-		#137 $finish;
+		#2000 $finish;
 	end
 endmodule // FETCH_STAGE_tb

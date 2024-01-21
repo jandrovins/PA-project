@@ -3,24 +3,32 @@
 00 02 00 02
 00 03 00 03
 // COUNTER LOOP
-00 00 07 13 // addi x14,zero,0
-00 a0 06 13 // addi x12,zero,10
-00 10 06 93 // addi x13,zero,1
-00 e6 87 33 // add x14,x13,x14
-00 16 86 93 // addi x13,x13,1
-fe c6 cc e3 // blt x13,a2,-8
-fd 47 0f 13 // addi x30,x14,-44 - result should be 0
-00 00 50 63 // bge zero,zero,0 - idle
-// OTHER PROGRAM
-00 80 00 93 // addi x1, x0,  8
-fe 10 0e e3 // beq  x0, x1, -4
-00 90 00 93 // addi x1, x0,  9
-01 00 01 67 // jalr x2, x0, 16
-00 31 01 13 // addi x2, x2,  3
-40 11 01 b3 // sub  x3, x2, x1
-02 11 80 b3 // mul  x1, x3, x1
-00 00 14 63 //
-fd 9f f0 6f // beq  x0, x0, -16
-00 a0 00 93
-00 0c 00 0c
-00 0d 00 0d
+00 00 07 13 // addi x14,zero,0    -> 10
+00 a0 06 13 // addi x12,zero,10   -> 14
+00 10 06 93 // addi x13,zero,1    -> 18
+00 e6 87 33 // add x14,x13,x14    -> 1c
+00 16 86 93 // addi x13,x13,1     -> 20
+fe c6 cc e3 // blt x13,x12,-8     -> 24
+fd 37 0f 13 // addi x30,x14,-45 - result should be 0   -> 28
+00 00 50 63 // bge zero,zero,0 - idle                  -> 2c
+// OTHER PROGRAM - EXPECTED RESULT: x3=0x18 x2=0x4 x1=0x0
+00 c0 00 93 // addi x1, x0, 12   -> 30
+00 10 a0 23 // sw x1, 0(x1)
+ff c0 80 93 // addi x1, x1, -4
+fe 00 9c e3 // bne x1,x0,-8
+00 c0 00 93 // addi x1,x0,12
+00 00 01 93 // addi x3,x0,0
+00 00 a1 03 // lw,x2,0(x1)
+00 31 01 b3 // add x3,x2,x3
+ff c0 80 93 // addi x1,x1,-4
+fe 00 9a e3 // bne x1,x0,-12
+00 00 00 63 // beq x0,x0,0
+// TEST BYPASS FROM MEM TO MEM -> LW x2,0(x1) ST x2,0(x12)
+00 c0 00 93 // addi x1, x0,12 // read pointer 5c
+00 00 06 13 // addi x12,x0,0 // write pointer
+00 00 a1 03 // lw x2,0(x1)
+00 26 20 23 // sw x2,0(x12)
+00 40 a1 03 // lw x2,4(x1)
+00 26 22 23 // sw x2,4(x12)
+00 80 a1 03 // lw x2,8(x1)
+00 26 24 23 // sw x2,8(x12)
