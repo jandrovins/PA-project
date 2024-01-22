@@ -1,4 +1,6 @@
 module HAZARD_UNIT (
+		input       icache_hit,
+
         input [4:0] d_in_r1_key,
         input [4:0] d_in_r2_key,
 
@@ -38,9 +40,9 @@ module HAZARD_UNIT (
 
     assign hu_load_causes_stall = e_in_rd_is_load_en & ((e_in_rd_key == d_in_r1_key) | (e_in_rd_key == d_in_r2_key));
 
-    assign hu_out_stall_f_en = hu_load_causes_stall;
+    assign hu_out_stall_f_en = hu_load_causes_stall | !icache_hit;
     assign hu_out_stall_d_en = hu_load_causes_stall;
     assign hu_out_flush_e_en = hu_load_causes_stall | e_in_branch_en;
-	assign hu_out_flush_d_en = e_in_branch_en;
+	assign hu_out_flush_d_en = e_in_branch_en | !icache_hit;
 
 endmodule

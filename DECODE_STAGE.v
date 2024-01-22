@@ -1,7 +1,6 @@
 
 module DECODE_STAGE (
 			input [31:0]  d_in_instr,
-			input         d_in_kill_instr, // 1 if we should we send a NOP
 
 			output [4:0]  d_out_r1_key,
 			output [4:0]  d_out_r2_key,
@@ -32,13 +31,9 @@ module DECODE_STAGE (
 	wire [31:0] d_branch_offset;
     wire d_is_load_instr;
 
-	assign d_in_kill_instr = 1'b0;
-
-
 	//####################################################//
 	//######### DECODE BASIC SEGMENTS TYPE BEGIN #########//
-	assign d_effective_instr = d_in_kill_instr == TRUE ? NOP :
-							 d_in_instr;
+	assign d_effective_instr = d_in_instr;
 	assign d_opcode = d_effective_instr[ 6: 0];
 	assign d_funct7 = d_effective_instr[31:25];
 	assign d_funct3 = d_effective_instr[14:12];

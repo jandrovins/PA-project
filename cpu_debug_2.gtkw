@@ -1,23 +1,22 @@
 [*]
 [*] GTKWave Analyzer v3.3.117 (w)1999-2023 BSI
-[*] Sun Jan 21 20:04:03 2024
+[*] Mon Jan 22 21:29:52 2024
 [*]
 [dumpfile] "/home/vincent/Documentos/Master/PA/MIRI-PA-Project/SYSTEM.fst"
-[dumpfile_mtime] "Sun Jan 21 19:51:49 2024"
-[dumpfile_size] 6171
+[dumpfile_mtime] "Mon Jan 22 21:09:19 2024"
+[dumpfile_size] 7350
 [savefile] "/home/vincent/Documentos/Master/PA/MIRI-PA-Project/cpu_debug_2.gtkw"
-[timestart] 24
-[size] 1914 983
+[timestart] 18
+[size] 1920 1080
 [pos] -1 -1
-*-2.332530 45 8 10 12 14 16 18 20 22 38 40 42 44 46 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.332530 30 8 10 12 14 16 18 20 22 38 40 42 44 46 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] SYSTEM_tb.
 [treeopen] SYSTEM_tb.cpu.
 [treeopen] SYSTEM_tb.cpu.cpu.
-[treeopen] SYSTEM_tb.cpu.memory.
 [sst_width] 243
-[signals_width] 323
+[signals_width] 514
 [sst_expanded] 1
-[sst_vpaned_height] 292
+[sst_vpaned_height] 329
 @28
 SYSTEM_tb.clk
 SYSTEM_tb.reset
@@ -27,11 +26,38 @@ SYSTEM_tb.cpu.cpu.register_file.\registers[1][31:0]
 SYSTEM_tb.cpu.cpu.register_file.\registers[2][31:0]
 SYSTEM_tb.cpu.cpu.register_file.\registers[3][31:0]
 @200
+-CACHE
+@28
+SYSTEM_tb.cpu.cpu.cache.status[2:0]
+SYSTEM_tb.cpu.cpu.cache.next_status[2:0]
+SYSTEM_tb.cpu.cpu.cache.mem_read_rdy
+SYSTEM_tb.cpu.cpu.cache.mem_read_start
+SYSTEM_tb.cpu.cpu.cache.next_mem_read_start
+SYSTEM_tb.cpu.cpu.cache.hit
+SYSTEM_tb.cpu.cpu.cache.valid0set0
+SYSTEM_tb.cpu.cpu.cache.valid0set1
+@29
+SYSTEM_tb.cpu.cpu.cache.valid1set0
+@28
+SYSTEM_tb.cpu.cpu.cache.valid1set1
+@22
+SYSTEM_tb.cpu.cpu.cache.address[31:0]
+SYSTEM_tb.cpu.cpu.cache.line0set1[127:0]
+SYSTEM_tb.cpu.cpu.cache.tag0set1[31:5]
+SYSTEM_tb.cpu.cpu.cache.line0set0[127:0]
+SYSTEM_tb.cpu.cpu.cache.tag0set0[31:5]
+SYSTEM_tb.cpu.cpu.cache.mem_bus_address[31:0]
+SYSTEM_tb.cpu.cpu.cache.startByteInLine[3:0]
+@200
+-IMEMORY
+@28
+SYSTEM_tb.cpu.imemory.cycle_counter[2:0]
+SYSTEM_tb.cpu.imemory.next_cycle_counter[2:0]
+@200
 -fetch
 @22
 SYSTEM_tb.cpu.cpu.f_pc[31:0]
 SYSTEM_tb.cpu.cpu.f_pc_plus4[31:0]
-SYSTEM_tb.cpu.cpu.fetch.f_out_instr[31:0]
 @200
 -decode
 @c00022
@@ -82,7 +108,7 @@ SYSTEM_tb.cpu.cpu.decode.d_out_rd_sel[1:0]
 SYSTEM_tb.cpu.cpu.decode.d_out_rd_we
 @22
 SYSTEM_tb.cpu.cpu.decode.d_effective_instr[31:0]
-@29
+@28
 SYSTEM_tb.cpu.cpu.decode.d_out_alu_op[4:0]
 @200
 -EXECUTION STAGE
@@ -118,9 +144,7 @@ SYSTEM_tb.cpu.cpu.hu.hu_out_alu_src2_sel[1:0]
 -MEMORY STAGE
 @22
 SYSTEM_tb.cpu.cpu.m_alu_result[31:0]
-SYSTEM_tb.cpu.cpu.memory_address_bus1[31:0]
 SYSTEM_tb.cpu.cpu.memory_address_bus2[31:0]
-SYSTEM_tb.cpu.cpu.memory_data_bus1[31:0]
 SYSTEM_tb.cpu.cpu.memory_data_bus2[31:0]
 @28
 SYSTEM_tb.cpu.cpu.memory_write_enable2
@@ -137,27 +161,5 @@ SYSTEM_tb.cpu.cpu.wb_rf_rd_we
 SYSTEM_tb.cpu.cpu.register_file.\registers[1][31:0]
 SYSTEM_tb.cpu.cpu.register_file.\registers[2][31:0]
 SYSTEM_tb.cpu.cpu.register_file.\registers[3][31:0]
-SYSTEM_tb.cpu.memory.\memory[0][7:0]
-SYSTEM_tb.cpu.memory.\memory[1][7:0]
-SYSTEM_tb.cpu.memory.\memory[2][7:0]
-SYSTEM_tb.cpu.memory.\memory[3][7:0]
-SYSTEM_tb.cpu.memory.\memory[4][7:0]
-SYSTEM_tb.cpu.memory.\memory[5][7:0]
-SYSTEM_tb.cpu.memory.\memory[6][7:0]
-SYSTEM_tb.cpu.memory.\memory[7][7:0]
-SYSTEM_tb.cpu.memory.\memory[8][7:0]
-SYSTEM_tb.cpu.memory.\memory[9][7:0]
-SYSTEM_tb.cpu.memory.\memory[10][7:0]
-SYSTEM_tb.cpu.memory.\memory[11][7:0]
-SYSTEM_tb.cpu.memory.\memory[12][7:0]
-SYSTEM_tb.cpu.memory.\memory[13][7:0]
-SYSTEM_tb.cpu.memory.\memory[14][7:0]
-SYSTEM_tb.cpu.memory.\memory[15][7:0]
-SYSTEM_tb.cpu.memory.\memory[16][7:0]
-SYSTEM_tb.cpu.memory.\memory[17][7:0]
-SYSTEM_tb.cpu.memory.\memory[18][7:0]
-SYSTEM_tb.cpu.memory.\memory[19][7:0]
-SYSTEM_tb.cpu.memory.\memory[20][7:0]
-SYSTEM_tb.cpu.memory.\memory[21][7:0]
 [pattern_trace] 1
 [pattern_trace] 0

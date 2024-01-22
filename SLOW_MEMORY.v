@@ -3,7 +3,7 @@
 /*
  * An sync-read, sync-write, 5 cycle latency memory emulator. It has a size of NUM_BYTES bytes,
  * which can be easily set at instantiation time, and outputs a word
- * composed of WORD_SIZE_BYTES bytes. For emulation purposes, it is
+ * composed of DATA_SIZE_BYTES bytes. For emulation purposes, it is
  * initialized with the contents of the INITIAL_MEMORY_FILE file.
  * Neither address or data is latched, so it must be kept in the bus for
  * the 5 cycles. Start signal can be reset at any time before starting and rdy.
@@ -11,7 +11,7 @@
 
 module SLOW_MEMORY #(
 		parameter INITIAL_MEMORY_FILE = "mem32b.txt",
-		parameter WORD_SIZE_BYTES = 4,
+		parameter DATA_SIZE_BYTES = 4,
 		parameter NUM_BYTES = 1024
 		) (
 		   input clk,
@@ -21,8 +21,8 @@ module SLOW_MEMORY #(
 		   input memory_start,
 		   output memory_rdy,
 		   input memory_write_enable,
-		   input [(WORD_SIZE_BYTES*8)-1:0] memory_address,
-		   inout [(WORD_SIZE_BYTES*8)-1:0] memory_data
+		   input [31:0] memory_address,
+		   inout [(DATA_SIZE_BYTES*8)-1:0] memory_data
 		   );
 
 	initial begin
@@ -41,13 +41,13 @@ module SLOW_MEMORY #(
 				    cycle_counter == 3'd4 ? 3'b111 :
 				    cycle_counter + 1;
 
-	reg [31:0] data_out;
-	wire [31:0] next_data_out;
+	reg [(DATA_SIZE_BYTES*8)-1:0] data_out;
+	wire [(DATA_SIZE_BYTES*8)-1:0] next_data_out;
 
 	genvar bytenumber;
-	generate for(bytenumber = 0; bytenumber < WORD_SIZE_BYTES; bytenumber = bytenumber + 1)
+	generate for(bytenumber = 0; bytenumber < DATA_SIZE_BYTES; bytenumber = bytenumber + 1)
 		assign next_data_out[(bytenumber+1)*8-1 : bytenumber*8] = cycle_counter == 3'd4 && memory_write_enable ? 8'bz :
-									  cycle_counter == 3'd4 && !memory_write_enable ? memory[memory_address + (WORD_SIZE_BYTES - 1 - bytenumber)] :
+									  cycle_counter == 3'd4 && !memory_write_enable ? memory[memory_address + (DATA_SIZE_BYTES - 1 - bytenumber)] :
 									  data_out[(bytenumber+1)*8-1 : bytenumber*8];
 	endgenerate
 

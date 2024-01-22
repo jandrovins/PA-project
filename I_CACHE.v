@@ -39,7 +39,7 @@ module I_CACHE (
 		     valid1set1 && address[4] == 1'b1 && address[31:5] == tag1set1 ? 1'b1 :
 		     1'b0;
 
-	// Indicates the "byte in line" where the requesta data starts
+	// Indicates the "byte in line" where the request data starts
 	wire [3:0] startByteInLine;
 	assign startByteInLine = address[3:0];
 
@@ -58,7 +58,7 @@ module I_CACHE (
 			     startByteInLine == 4'd12 ? line[103:96] :
 			     startByteInLine == 4'd13 ? line[111:104] :
 			     startByteInLine == 4'd14 ? line[119:112] :
-			     line[127:120];
+			     line[:112720];
 
 	assign data[15: 8] = (startByteInLine + 1) == 4'd1 && size ? line[15:8] :
 			     (startByteInLine + 1) == 4'd2 && size ? line[23:16] :
@@ -116,14 +116,17 @@ module I_CACHE (
 	reg [2:0] status;
 	wire [2:0] next_status;
 	assign next_status = status == I_CACHE_FILLED && cs && !hit ? I_CACHE_WAITING_FROM_MEMORY :
+			     status == I_CACHE_WAITING_FROM_MEMORY && mem_read_start ? I_CACHE_WAITING_FROM_MEMORY :
 			     status == I_CACHE_WAITING_FROM_MEMORY && !mem_read_rdy ? I_CACHE_WAITING_FROM_MEMORY :
 			     I_CACHE_FILLED;
 
 	// "start" signal will be up for the whole transaction. Bring it down when
 	// the read is over, and keep it down if not reading from memory
 	wire next_mem_read_start;
-	assign next_mem_read_start = status == I_CACHE_WAITING_FROM_MEMORY && !mem_read_rdy ? 1'b1 :
-				     1'b0;
+	assign next_mem_read_start = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_read_start ? 1'b1 :
+								 status == I_CACHE_WAITING_FROM_MEMORY && !mem_read_rdy && mem_read_start ? 1'b0 :
+								 status == I_CACHE_FILLED && !hit ? 1'b1 :
+				                 1'b0;
 
 	// Keep the requested address in the mem bus, in case the CPU changes it
 	wire [31:0] next_mem_bus_address;
@@ -142,22 +145,22 @@ module I_CACHE (
 				  replaceset0;
 
 	wire next_valid0set0, next_valid0set1, next_valid1set0, next_valid1set1;
-	assign next_valid0set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 0 && replaceset0 == 0 ? 1'b1 : valid0set0;
-	assign next_valid1set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 0 && replaceset0 == 1 ? 1'b1 : valid0set1;
-	assign next_valid0set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 1 && replaceset1 == 0 ? 1'b1 : valid1set0;
-	assign next_valid1set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 1 && replaceset1 == 1 ? 1'b1 : valid1set1;
+	assign next_valid0set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 0 && replaceset0 == 0 ? 1'b1 : valid0set0;
+	assign next_valid1set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 0 && replaceset0 == 1 ? 1'b1 : valid1set0;
+	assign next_valid0set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 1 && replaceset1 == 0 ? 1'b1 : valid0set1;
+	assign next_valid1set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 1 && replaceset1 == 1 ? 1'b1 : valid1set1;
 
 	wire [31:5] next_tag0set0, next_tag0set1, next_tag1set0, next_tag1set1;
-	assign next_tag0set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 0 && replaceset0 == 0 ? mem_bus_address[31:5] : tag0set0;
-	assign next_tag1set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 0 && replaceset0 == 1 ? mem_bus_address[31:5] : tag0set1;
-	assign next_tag0set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 1 && replaceset1 == 0 ? mem_bus_address[31:5] : tag1set0;
-	assign next_tag1set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 1 && replaceset1 == 1 ? mem_bus_address[31:5] : tag1set1;
+	assign next_tag0set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 0 && replaceset0 == 0 ? mem_bus_address[31:5] : tag0set0;
+	assign next_tag1set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 0 && replaceset0 == 1 ? mem_bus_address[31:5] : tag1set0;
+	assign next_tag0set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 1 && replaceset1 == 0 ? mem_bus_address[31:5] : tag0set1;
+	assign next_tag1set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 1 && replaceset1 == 1 ? mem_bus_address[31:5] : tag1set1;
 
 	wire [127:0] next_line0set0, next_line0set1, next_line1set0, next_line1set1;
-	assign next_line0set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 0 && replaceset0 == 0 ? mem_bus_data : line0set0;
-	assign next_line1set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 0 && replaceset0 == 1 ? mem_bus_data : line0set1;
-	assign next_line0set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 1 && replaceset1 == 0 ? mem_bus_data : line1set0;
-	assign next_line1set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && mem_bus_address[4] == 1 && replaceset1 == 1 ? mem_bus_data : line1set1;
+	assign next_line0set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 0 && replaceset0 == 0 ? mem_bus_data : line0set0;
+	assign next_line1set0 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 0 && replaceset0 == 1 ? mem_bus_data : line1set0;
+	assign next_line0set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 1 && replaceset1 == 0 ? mem_bus_data : line0set1;
+	assign next_line1set1 = status == I_CACHE_WAITING_FROM_MEMORY && mem_read_rdy && !mem_read_start && mem_bus_address[4] == 1 && replaceset1 == 1 ? mem_bus_data : line1set1;
 
 	always @(posedge clk, posedge reset) begin
 		if(reset) begin

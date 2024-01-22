@@ -2,8 +2,11 @@ module CPU (
 	    input clk,
 	    input reset,
 
-	    input [31:0] memory_data_bus1,
-	    output [31:0] memory_address_bus1,
+	    input [127:0] imemory_data_bus1,
+	    output [31:0] imemory_address_bus1,
+		input imem_read_rdy,
+		output imem_read_start,
+
 
 	    output memory_write_enable2,
 	    inout [31:0] memory_data_bus2,
@@ -14,7 +17,7 @@ module CPU (
 `include "CPU_CONFIG.vinc"
 `include "RISCV_constants.vinc"
 
-	wire [31:0] instruction_register, rf_port1_data, rf_port2_data, operand1, operand2, alu_output;
+	wire [31:0] rf_port1_data, rf_port2_data, operand1, operand2, alu_output;
 	wire [31:0] wb_rf_rd_data;
 	wire [ 4:0] wb_rf_rd_key;
 	wire        wb_rf_rd_we;
@@ -57,11 +60,25 @@ module CPU (
 		end
 	end // always @ (posedge clk, posedge reset)
 
-	FETCH_STAGE fetch (.f_in_pc(f_pc),
-	       .f_in_mem_instr(memory_data_bus1),
-	       .f_out_mem_instr_address(memory_address_bus1),
-	       .f_out_instr(f_instr),
-	       .f_out_pc_plus4(f_pc_plus4));
+	wire icache_hit;
+	wire [31:0] icache_data;
+	I_CACHE cache (.clk(clk),
+		     .reset(reset),
+		     .cs(1'b1),
+		     .mem_bus_address(imemory_address_bus1),
+		     .mem_bus_data(imemory_data_bus1),
+		     .mem_read_rdy(imem_read_rdy),
+			 .mem_read_start(imem_read_start),
+
+		     .size(1'b1), // always word in icache
+		     .address(f_pc),
+		     .data(icache_data),
+		     .hit(icache_hit)
+		     );
+
+
+	assign f_instr = icache_data;
+	assign f_pc_plus4 = f_pc + 4;
 
 	reg [31:0] d_pc;
 	reg [31:0] d_pc_plus4;
@@ -75,14 +92,14 @@ module CPU (
 			d_pc_plus4 <= INITIAL_PC;
 			d_instr <= NOP; // Send NOP
 		end else begin // if (reset)
-			d_pc       <= hu_flush_d_en ? INITIAL_PC :
-						  hu_stall_d_en ? d_pc :
+			d_pc       <= hu_stall_d_en ? d_pc :
+					      hu_flush_d_en ? INITIAL_PC :
 						  f_pc;
-			d_pc_plus4 <= hu_flush_d_en ? INITIAL_PC :
-						  hu_stall_d_en ? d_pc_plus4 :
+			d_pc_plus4 <= hu_stall_d_en ? d_pc_plus4 :
+						  hu_flush_d_en ? INITIAL_PC :
 						  f_pc_plus4;
-			d_instr    <= hu_flush_d_en ? NOP        :
-						  hu_stall_d_en ? d_instr :
+			d_instr    <= hu_stall_d_en ? d_instr    :
+						  hu_flush_d_en ? NOP        :
 						  f_instr;
 		end
 	end // always @ (posedge clk, posedge reset)
@@ -95,13 +112,12 @@ module CPU (
 	wire dest_register_enable_DA, dest_register_enable_AW;
 	wire [4:0] d_rd_key, d_r1_key, d_r2_key, d_alu_op;
 	wire [31:0] next_program_counter_DA, branch_dest, source2_reg_value_DE;
-	wire e_to_d_kill_instr, d_rd_we, d_mem_we, d_is_jmp, d_is_branch, d_alu_src2_is_imm, d_mem_data_size;
+	wire d_rd_we, d_mem_we, d_is_jmp, d_is_branch, d_alu_src2_is_imm, d_mem_data_size;
     wire [31:0] d_r1_data, d_r2_data, d_imm;
     wire [1:0] d_rd_sel;
 
 	DECODE_STAGE decode (
 			     .d_in_instr(d_instr),
-			     .d_in_kill_instr(e_to_d_kill_instr),
 
 			     .d_out_r1_key(d_r1_key),
 			     .d_out_r2_key(d_r2_key),
@@ -191,6 +207,8 @@ module CPU (
 	wire [1:0]  hu_alu_src1_sel, hu_alu_src2_sel;
 
 	HAZARD_UNIT hu (
+		.icache_hit(icache_hit),
+
         .d_in_r1_key(d_r1_key),
         .d_in_r2_key(d_r2_key),
 
@@ -295,12 +313,12 @@ module CPU (
 	always @(posedge clk, posedge reset) begin
 		if (reset) begin
             // Passthrough
-            wb_pc_plus4 <= INITIAL_PC;
-            wb_rd_key   <= 5'b0;
-            wb_rd_sel   <= 2'b0;
-            wb_rd_we    <= 1'b0;
-            wb_alu_result     <= 32'b0;
-            wb_mem_out_data     <= 32'b0;
+            wb_pc_plus4     <= INITIAL_PC;
+            wb_rd_key       <= 5'b0;
+            wb_rd_sel       <= 2'b0;
+            wb_rd_we        <= 1'b0;
+            wb_alu_result   <= 32'b0;
+            wb_mem_out_data <= 32'b0;
 		end else begin // if (reset)
             // Passthrough
             wb_pc_plus4   <= m_pc_plus4;
