@@ -45,6 +45,7 @@ module CPU (
 						f_pc_plus4;
 
 
+
 	reg [31:0] f_pc;
     wire       hu_stall_f_en;
 	always @(posedge clk, posedge reset) begin

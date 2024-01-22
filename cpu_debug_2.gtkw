@@ -1,0 +1,163 @@
+[*]
+[*] GTKWave Analyzer v3.3.117 (w)1999-2023 BSI
+[*] Sun Jan 21 20:04:03 2024
+[*]
+[dumpfile] "/home/vincent/Documentos/Master/PA/MIRI-PA-Project/SYSTEM.fst"
+[dumpfile_mtime] "Sun Jan 21 19:51:49 2024"
+[dumpfile_size] 6171
+[savefile] "/home/vincent/Documentos/Master/PA/MIRI-PA-Project/cpu_debug_2.gtkw"
+[timestart] 24
+[size] 1914 983
+[pos] -1 -1
+*-2.332530 45 8 10 12 14 16 18 20 22 38 40 42 44 46 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] SYSTEM_tb.
+[treeopen] SYSTEM_tb.cpu.
+[treeopen] SYSTEM_tb.cpu.cpu.
+[treeopen] SYSTEM_tb.cpu.memory.
+[sst_width] 243
+[signals_width] 323
+[sst_expanded] 1
+[sst_vpaned_height] 292
+@28
+SYSTEM_tb.clk
+SYSTEM_tb.reset
+@22
+SYSTEM_tb.cpu.cpu.register_file.\registers[0][31:0]
+SYSTEM_tb.cpu.cpu.register_file.\registers[1][31:0]
+SYSTEM_tb.cpu.cpu.register_file.\registers[2][31:0]
+SYSTEM_tb.cpu.cpu.register_file.\registers[3][31:0]
+@200
+-fetch
+@22
+SYSTEM_tb.cpu.cpu.f_pc[31:0]
+SYSTEM_tb.cpu.cpu.f_pc_plus4[31:0]
+SYSTEM_tb.cpu.cpu.fetch.f_out_instr[31:0]
+@200
+-decode
+@c00022
+SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+@28
+(0)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(1)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(2)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(3)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(4)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(5)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(6)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(7)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(8)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(9)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(10)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(11)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(12)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(13)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(14)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(15)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(16)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(17)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(18)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(19)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(20)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(21)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(22)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(23)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(24)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(25)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(26)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(27)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(28)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(29)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(30)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+(31)SYSTEM_tb.cpu.cpu.decode.d_in_instr[31:0]
+@1401200
+-group_end
+@22
+SYSTEM_tb.cpu.cpu.decode.d_out_r1_key[4:0]
+SYSTEM_tb.cpu.cpu.d_r1_data[31:0]
+SYSTEM_tb.cpu.cpu.decode.d_out_r2_key[4:0]
+SYSTEM_tb.cpu.cpu.d_r2_data[31:0]
+SYSTEM_tb.cpu.cpu.decode.d_out_rd_key[4:0]
+@28
+SYSTEM_tb.cpu.cpu.decode.d_out_rd_sel[1:0]
+SYSTEM_tb.cpu.cpu.decode.d_out_rd_we
+@22
+SYSTEM_tb.cpu.cpu.decode.d_effective_instr[31:0]
+@29
+SYSTEM_tb.cpu.cpu.decode.d_out_alu_op[4:0]
+@200
+-EXECUTION STAGE
+@28
+SYSTEM_tb.cpu.cpu.e_branch_en
+@22
+SYSTEM_tb.cpu.cpu.e_imm[31:0]
+SYSTEM_tb.cpu.cpu.e_pc[31:0]
+SYSTEM_tb.cpu.cpu.e_branch_target_pc[31:0]
+SYSTEM_tb.cpu.cpu.e_r1_data[31:0]
+SYSTEM_tb.cpu.cpu.e_r1_key[4:0]
+SYSTEM_tb.cpu.cpu.e_r2_data[31:0]
+SYSTEM_tb.cpu.cpu.e_r2_data_after_bypass[31:0]
+SYSTEM_tb.cpu.cpu.e_r2_key[4:0]
+SYSTEM_tb.cpu.cpu.e_rd_key[4:0]
+SYSTEM_tb.cpu.cpu.e_branch_target_pc[31:0]
+@200
+-ALU
+@22
+SYSTEM_tb.cpu.cpu.alu.alu_in_op[4:0]
+SYSTEM_tb.cpu.cpu.alu.alu_in_src1[31:0]
+SYSTEM_tb.cpu.cpu.alu.alu_in_src2[31:0]
+@28
+SYSTEM_tb.cpu.cpu.alu.alu_out_branch_en
+@22
+SYSTEM_tb.cpu.cpu.alu.alu_out_result[31:0]
+@200
+-HU
+@28
+SYSTEM_tb.cpu.cpu.hu.hu_out_alu_src1_sel[1:0]
+SYSTEM_tb.cpu.cpu.hu.hu_out_alu_src2_sel[1:0]
+@200
+-MEMORY STAGE
+@22
+SYSTEM_tb.cpu.cpu.m_alu_result[31:0]
+SYSTEM_tb.cpu.cpu.memory_address_bus1[31:0]
+SYSTEM_tb.cpu.cpu.memory_address_bus2[31:0]
+SYSTEM_tb.cpu.cpu.memory_data_bus1[31:0]
+SYSTEM_tb.cpu.cpu.memory_data_bus2[31:0]
+@28
+SYSTEM_tb.cpu.cpu.memory_write_enable2
+@200
+-WRITEBACK
+@22
+SYSTEM_tb.cpu.cpu.wb_mem_out_data[31:0]
+SYSTEM_tb.cpu.cpu.wb_rf_rd_data[31:0]
+SYSTEM_tb.cpu.cpu.wb_alu_result[31:0]
+SYSTEM_tb.cpu.cpu.wb_rf_rd_key[4:0]
+@28
+SYSTEM_tb.cpu.cpu.wb_rf_rd_we
+@22
+SYSTEM_tb.cpu.cpu.register_file.\registers[1][31:0]
+SYSTEM_tb.cpu.cpu.register_file.\registers[2][31:0]
+SYSTEM_tb.cpu.cpu.register_file.\registers[3][31:0]
+SYSTEM_tb.cpu.memory.\memory[0][7:0]
+SYSTEM_tb.cpu.memory.\memory[1][7:0]
+SYSTEM_tb.cpu.memory.\memory[2][7:0]
+SYSTEM_tb.cpu.memory.\memory[3][7:0]
+SYSTEM_tb.cpu.memory.\memory[4][7:0]
+SYSTEM_tb.cpu.memory.\memory[5][7:0]
+SYSTEM_tb.cpu.memory.\memory[6][7:0]
+SYSTEM_tb.cpu.memory.\memory[7][7:0]
+SYSTEM_tb.cpu.memory.\memory[8][7:0]
+SYSTEM_tb.cpu.memory.\memory[9][7:0]
+SYSTEM_tb.cpu.memory.\memory[10][7:0]
+SYSTEM_tb.cpu.memory.\memory[11][7:0]
+SYSTEM_tb.cpu.memory.\memory[12][7:0]
+SYSTEM_tb.cpu.memory.\memory[13][7:0]
+SYSTEM_tb.cpu.memory.\memory[14][7:0]
+SYSTEM_tb.cpu.memory.\memory[15][7:0]
+SYSTEM_tb.cpu.memory.\memory[16][7:0]
+SYSTEM_tb.cpu.memory.\memory[17][7:0]
+SYSTEM_tb.cpu.memory.\memory[18][7:0]
+SYSTEM_tb.cpu.memory.\memory[19][7:0]
+SYSTEM_tb.cpu.memory.\memory[20][7:0]
+SYSTEM_tb.cpu.memory.\memory[21][7:0]
+[pattern_trace] 1
+[pattern_trace] 0
