@@ -43,69 +43,70 @@ module I_CACHE (
 	wire [3:0] startByteInLine;
 	assign startByteInLine = address[3:0];
 
-	assign data[ 7: 0] = startByteInLine == 4'd0 ? line[7:0] :
-			     startByteInLine == 4'd1 ? line[15:8] :
-			     startByteInLine == 4'd2 ? line[23:16] :
-			     startByteInLine == 4'd3 ? line[31:24] :
-			     startByteInLine == 4'd4 ? line[39:32] :
-			     startByteInLine == 4'd5 ? line[47:40] :
-			     startByteInLine == 4'd6 ? line[55:48] :
-			     startByteInLine == 4'd7 ? line[63:56] :
-			     startByteInLine == 4'd8 ? line[71:64] :
-			     startByteInLine == 4'd9 ? line[79:72] :
-			     startByteInLine == 4'd10 ? line[87:80] :
-			     startByteInLine == 4'd11 ? line[95:88] :
-			     startByteInLine == 4'd12 ? line[103:96] :
-			     startByteInLine == 4'd13 ? line[111:104] :
-			     startByteInLine == 4'd14 ? line[119:112] :
-			     line[:112720];
+	assign data[31:24] = startByteInLine == 4'd0 ? line[127:120] :
+			     startByteInLine == 4'd1 ? line[119:112] :
+			     startByteInLine == 4'd2 ? line[111:104] :
+			     startByteInLine == 4'd3 ? line[103:96] :
+			     startByteInLine == 4'd4 ? line[95:88] :
+			     startByteInLine == 4'd5 ? line[87:80] :
+			     startByteInLine == 4'd6 ? line[79:72] :
+			     startByteInLine == 4'd7 ? line[71:64] :
+			     startByteInLine == 4'd8 ? line[63:56] :
+			     startByteInLine == 4'd9 ? line[55:48] :
+			     startByteInLine == 4'd10 ? line[47:40] :
+			     startByteInLine == 4'd11 ? line[39:32] :
+			     startByteInLine == 4'd12 ? line[31:24] :
+			     startByteInLine == 4'd13 ? line[23:16] :
+			     startByteInLine == 4'd14 ? line[15:8] :
+			     line[7:0];
 
-	assign data[15: 8] = (startByteInLine + 1) == 4'd1 && size ? line[15:8] :
-			     (startByteInLine + 1) == 4'd2 && size ? line[23:16] :
-			     (startByteInLine + 1) == 4'd3 && size ? line[31:24] :
-			     (startByteInLine + 1) == 4'd4 && size ? line[39:32] :
-			     (startByteInLine + 1) == 4'd5 && size ? line[47:40] :
-			     (startByteInLine + 1) == 4'd6 && size ? line[55:48] :
-			     (startByteInLine + 1) == 4'd7 && size ? line[63:56] :
-			     (startByteInLine + 1) == 4'd8 && size ? line[71:64] :
-			     (startByteInLine + 1) == 4'd9 && size ? line[79:72] :
-			     (startByteInLine + 1) == 4'd10 && size ? line[87:80] :
-			     (startByteInLine + 1) == 4'd11 && size ? line[95:88] :
-			     (startByteInLine + 1) == 4'd12 && size ? line[103:96] :
-			     (startByteInLine + 1) == 4'd13 && size ? line[111:104] :
-			     (startByteInLine + 1) == 4'd14 && size ? line[119:112] :
-			     (startByteInLine + 1) == 4'd15 && size ? line[127:120] :
+
+	assign data[23:16] = (startByteInLine+1) == 4'd1 && size ? line[119:112] :
+			     (startByteInLine+1) == 4'd2 && size ? line[111:104] :
+			     (startByteInLine+1) == 4'd3 && size ? line[103:96] :
+			     (startByteInLine+1) == 4'd4 && size ? line[95:88] :
+			     (startByteInLine+1) == 4'd5 && size ? line[87:80] :
+			     (startByteInLine+1) == 4'd6 && size ? line[79:72] :
+			     (startByteInLine+1) == 4'd7 && size ? line[71:64] :
+			     (startByteInLine+1) == 4'd8 && size ? line[63:56] :
+			     (startByteInLine+1) == 4'd9 && size ? line[55:48] :
+			     (startByteInLine+1) == 4'd10 && size ? line[47:40] :
+			     (startByteInLine+1) == 4'd11 && size ? line[39:32] :
+			     (startByteInLine+1) == 4'd12 && size ? line[31:24] :
+			     (startByteInLine+1) == 4'd13 && size ? line[23:16] :
+			     (startByteInLine+1) == 4'd14 && size ? line[15:8] :
+			     (startByteInLine+1) == 4'd15 && size ? line[7:0] :
 			     8'b0;
 
-	assign data[23:16] = (startByteInLine + 2) == 4'd2 && size ? line[23:16] :
-			     (startByteInLine + 2) == 4'd3 && size ? line[31:24] :
-			     (startByteInLine + 2) == 4'd4 && size ? line[39:32] :
-			     (startByteInLine + 2) == 4'd5 && size ? line[47:40] :
-			     (startByteInLine + 2) == 4'd6 && size ? line[55:48] :
-			     (startByteInLine + 2) == 4'd7 && size ? line[63:56] :
-			     (startByteInLine + 2) == 4'd8 && size ? line[71:64] :
-			     (startByteInLine + 2) == 4'd9 && size ? line[79:72] :
-			     (startByteInLine + 2) == 4'd10 && size ? line[87:80] :
-			     (startByteInLine + 2) == 4'd11 && size ? line[95:88] :
-			     (startByteInLine + 2) == 4'd12 && size ? line[103:96] :
-			     (startByteInLine + 2) == 4'd13 && size ? line[111:104] :
-			     (startByteInLine + 2) == 4'd14 && size ? line[119:112] :
-			     (startByteInLine + 2) == 4'd15 && size ? line[127:120] :
+	assign data[15: 8] = (startByteInLine+2) == 4'd2 && size ? line[111:104] :
+			     (startByteInLine+2) == 4'd3 && size ? line[103:96] :
+			     (startByteInLine+2) == 4'd4 && size ? line[95:88] :
+			     (startByteInLine+2) == 4'd5 && size ? line[87:80] :
+			     (startByteInLine+2) == 4'd6 && size ? line[79:72] :
+			     (startByteInLine+2) == 4'd7 && size ? line[71:64] :
+			     (startByteInLine+2) == 4'd8 && size ? line[63:56] :
+			     (startByteInLine+2) == 4'd9 && size ? line[55:48] :
+			     (startByteInLine+2) == 4'd10 && size ? line[47:40] :
+			     (startByteInLine+2) == 4'd11 && size ? line[39:32] :
+			     (startByteInLine+2) == 4'd12 && size ? line[31:24] :
+			     (startByteInLine+2) == 4'd13 && size ? line[23:16] :
+			     (startByteInLine+2) == 4'd14 && size ? line[15:8] :
+			     (startByteInLine+2) == 4'd15 && size ? line[7:0] :
 			     8'b0;
 
-	assign data[31:24] = (startByteInLine + 3) == 4'd3 && size ? line[31:24] :
-			     (startByteInLine + 3) == 4'd4 && size ? line[39:32] :
-			     (startByteInLine + 3) == 4'd5 && size ? line[47:40] :
-			     (startByteInLine + 3) == 4'd6 && size ? line[55:48] :
-			     (startByteInLine + 3) == 4'd7 && size ? line[63:56] :
-			     (startByteInLine + 3) == 4'd8 && size ? line[71:64] :
-			     (startByteInLine + 3) == 4'd9 && size ? line[79:72] :
-			     (startByteInLine + 3) == 4'd10 && size ? line[87:80] :
-			     (startByteInLine + 3) == 4'd11 && size ? line[95:88] :
-			     (startByteInLine + 3) == 4'd12 && size ? line[103:96] :
-			     (startByteInLine + 3) == 4'd13 && size ? line[111:104] :
-			     (startByteInLine + 3) == 4'd14 && size ? line[119:112] :
-			     (startByteInLine + 3) == 4'd15 && size ? line[127:120] :
+	assign data[ 7: 0] = (startByteInLine+3) == 4'd3 && size ? line[103:96] :
+			     (startByteInLine+3) == 4'd4 && size ? line[95:88] :
+			     (startByteInLine+3) == 4'd5 && size ? line[87:80] :
+			     (startByteInLine+3) == 4'd6 && size ? line[79:72] :
+			     (startByteInLine+3) == 4'd7 && size ? line[71:64] :
+			     (startByteInLine+3) == 4'd8 && size ? line[63:56] :
+			     (startByteInLine+3) == 4'd9 && size ? line[55:48] :
+			     (startByteInLine+3) == 4'd10 && size ? line[47:40] :
+			     (startByteInLine+3) == 4'd11 && size ? line[39:32] :
+			     (startByteInLine+3) == 4'd12 && size ? line[31:24] :
+			     (startByteInLine+3) == 4'd13 && size ? line[23:16] :
+			     (startByteInLine+3) == 4'd14 && size ? line[15:8] :
+			     (startByteInLine+3) == 4'd15 && size ? line[7:0] :
 			     8'b0;
 
 
@@ -130,7 +131,7 @@ module I_CACHE (
 
 	// Keep the requested address in the mem bus, in case the CPU changes it
 	wire [31:0] next_mem_bus_address;
-	assign next_mem_bus_address = status == I_CACHE_FILLED ? address :
+	assign next_mem_bus_address = status == I_CACHE_FILLED ? {address[31:4], 4'b0} :
 				      mem_bus_address;
 
 	// Which line from each set must be evicted next.
