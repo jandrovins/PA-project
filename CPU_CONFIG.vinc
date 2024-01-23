@@ -1,1 +1,6 @@
-localparam [31:0] INITIAL_PC = 32'h10;
+localparam [31:0] INITIAL_PC = 32'h20;
+
+localparam [31:0] BUFFER_SUM_PC = 32'h20;
+localparam [31:0] MEMCPY_PC = 32'h44;
+localparam [31:0] TEST_DIV_PC = 32'hac;
+localparam [31:0] TEST_PRIME = 32'hd0;

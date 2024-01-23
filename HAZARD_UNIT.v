@@ -13,6 +13,7 @@ module HAZARD_UNIT (
 		input       e_in_bp_predicted_en,
 		input       e_in_bp_mispredict_en,
 		input       e_in_branch_taken_en,
+		input       e_in_alu_busy,
 
 		input [4:0] m_in_rd_key,
 		input       m_in_rd_we, // enabled if it will write from register
@@ -25,6 +26,7 @@ module HAZARD_UNIT (
 
         output       hu_out_stall_f_en,
         output       hu_out_stall_d_en,
+		output       hu_out_stall_e_en,
         output       hu_out_flush_e_en,
         output       hu_out_flush_d_en
         );
@@ -46,8 +48,10 @@ module HAZARD_UNIT (
 
 	assign hu_tmp_e_have_to_correct_branch = e_in_bp_mispredict_en | (!e_in_bp_predicted_en && e_in_branch_taken_en);
 
-    assign hu_out_stall_f_en = hu_tmp_load_causes_stall | (!icache_hit & !hu_tmp_e_have_to_correct_branch);
-    assign hu_out_stall_d_en = hu_tmp_load_causes_stall;
+    assign hu_out_stall_f_en = hu_tmp_load_causes_stall | (!icache_hit & !hu_tmp_e_have_to_correct_branch) | e_in_alu_busy;
+    assign hu_out_stall_d_en = hu_tmp_load_causes_stall | e_in_alu_busy;
+	assign hu_out_stall_e_en = e_in_alu_busy;
+
     assign hu_out_flush_e_en = hu_tmp_load_causes_stall | hu_tmp_e_have_to_correct_branch;
 	assign hu_out_flush_d_en = (!icache_hit & !hu_tmp_e_have_to_correct_branch) | hu_tmp_e_have_to_correct_branch;
 endmodule

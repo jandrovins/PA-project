@@ -7,13 +7,13 @@ module SYSTEM (
 	wire [31:0] memory_address_bus1, memory_address_bus2, memory_data_bus2;
 	wire memory_write_enable2_w, imem_read_start, imem_read_rdy;
 
-	MEMORY #(.NUM_BYTES(1024)) dmemory (.clk(clk),
+	MEMORY #(.NUM_BYTES(4096), .INITIAL_MEMORY_FILE("mem_data.txt")) dmemory (.clk(clk),
 					 .memory_address1(32'bx),
 					 .memory_write_enable2(memory_write_enable2_w),
 					 .memory_address2(memory_address_bus2),
 					 .memory_data2(memory_data_bus2));
 	
-	SLOW_MEMORY #(.DATA_SIZE_BYTES(16), .NUM_BYTES(1024)) imemory (.clk(clk),
+	SLOW_MEMORY #(.DATA_SIZE_BYTES(16), .NUM_BYTES(1024), .INITIAL_MEMORY_FILE("mem_programs.txt")) imemory (.clk(clk),
 			     .reset(reset),
 
 			     .memory_address(memory_address_bus1),

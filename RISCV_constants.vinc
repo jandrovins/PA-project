@@ -52,6 +52,10 @@ localparam [4:0] ALU_ADD  = 5'h0,
 		         ALU_BGEU = 5'h9,
 		         IS_LW    = 5'ha,
 		         IS_LB    = 5'hb,
+				 ALU_DIV_FAST = 5'hc,
+				 ALU_REM_FAST = 5'hd,
+				 ALU_DIV_SLOW = 5'he,
+				 ALU_REM_SLOW = 5'hf,
 		         ALU_UNDEFINED_OP = 5'hx;
 
 

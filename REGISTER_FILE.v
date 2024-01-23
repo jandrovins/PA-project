@@ -18,10 +18,12 @@ module REGISTER_FILE(
 	  initial $dumpvars(0, registers[i]);
 	endgenerate
 
+
+
 	// When reading x0 a constant is returned. At position 0
 	// the content of a special register is stored
 	reg [31:0] registers [31:0];
-
+	initial registers[3] = 32'b0;
 	wire [31:0] next_rf_portD_value, rf_port1_value_wire;
 
 	function [31:0] rf_port_value(input rf_portD_enable,

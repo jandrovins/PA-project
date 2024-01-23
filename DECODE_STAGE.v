@@ -1,6 +1,9 @@
 
 module DECODE_STAGE (
 			input [31:0]  d_in_instr,
+			input [4:0 ]  e_in_r1_key,
+			input [4:0 ]  e_in_r2_key,
+			input [4:0 ]  e_in_alu_op,
 
 			output [4:0]  d_out_r1_key,
 			output [4:0]  d_out_r2_key,
@@ -116,6 +119,10 @@ module DECODE_STAGE (
                           d_is_r_instr && d_funct3 == 3'b0   && d_funct7 == 7'h00	? ALU_ADD : // ADD
 				          d_is_r_instr && d_funct3 == 3'b0   && d_funct7 == 7'h20	? ALU_SUB : // SUB
 				          d_is_r_instr && d_funct3 == 3'b0   && d_funct7 == 7'h01	? ALU_MUL : // MUL
+				          d_is_r_instr && d_funct3 == 3'b100 && d_funct7 == 7'b1 && e_in_r1_key == d_out_r1_key &&  e_in_r2_key == d_out_r2_key && (e_in_alu_op == ALU_DIV_FAST || e_in_alu_op == ALU_DIV_SLOW || e_in_alu_op == ALU_REM_SLOW || e_in_alu_op == ALU_REM_FAST) ? ALU_DIV_FAST :
+				          d_is_r_instr && d_funct3 == 3'b100 && d_funct7 == 7'b1	? ALU_DIV_SLOW : // SUB
+				          d_is_r_instr && d_funct3 == 3'b110 && d_funct7 == 7'b1 && e_in_r1_key == d_out_r1_key &&  e_in_r2_key == d_out_r2_key && (e_in_alu_op == ALU_DIV_FAST || e_in_alu_op == ALU_DIV_SLOW || e_in_alu_op == ALU_REM_SLOW || e_in_alu_op == ALU_REM_FAST) ? ALU_REM_FAST :
+				          d_is_r_instr && d_funct3 == 3'b110 && d_funct7 == 7'b1	? ALU_REM_SLOW : // SUB
 				          d_is_b_instr && d_funct3 == 3'b000 ? ALU_BEQ : // BEQ
 				          d_is_b_instr && d_funct3 == 3'b001 ? ALU_BNE : // BNE
 				          d_is_b_instr && d_funct3 == 3'b100 ? ALU_BLT : // BLT

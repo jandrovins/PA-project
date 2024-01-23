@@ -1,26 +1,26 @@
-// DATA section
-00 00 00 00 //   0
-00 01 00 01 //   4: Buffer start ptr of the buffer_sum program
-00 02 00 02 //   8: Buffer start ptr for buffer a of mem_copy program
-00 03 00 03 //   C: Buffer start ptr for buffer b of mem_copy program
-00 00 00 00 //  10
-00 01 00 01 //  14
-00 02 00 02 //  18
-00 03 00 03 //  1C
-// Code section
+// GARBAGE SECTION
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
 
-// Buffer_sum program
+
+// Buffer_sum program - RESULT IN x1 must be 0x2040 - it took 790
 08 00 02 13 //  20: addi x4, x0, 128 (i = 128)
 00 00 00 93 //  24: addi x1, x0, 0   (sum = 0)
 00 40 21 03 //  28: lw x2, 4(x0)     (a = M[4])
-00 01 21 83 //  2C: lw x3, 0(x2)     (tmp = M[a])
+00 01 21 83 //  2C: lw y, 0(x2)     (tmp = M[a])
 00 30 80 b3 //  30: add x1, x1, x3   (sum = sum + tmp)
 00 41 01 13 //  34: addi x2, x2, 4   (a = a + 4)
 ff f2 02 13 //  38: addi x4, x4, -1  (i = i - 1)
 fe 02 18 e3 //  3C: bne x4, x0, -16
 00 00 00 63 //  40: beq x0, x0, 0    ("hlt")
 
-// Mem_copy program
+// Mem_copy program - it took 1210 cycles
 00 00 00 93 //  44: addi x1, x0, 0  (i = 0)
 08 00 01 13 //  48: addi x2, x0, 128
 00 50 02 13 //  4C: addi x4, x0, 5
@@ -28,7 +28,7 @@ fe 02 18 e3 //  3C: bne x4, x0, -16
 00 41 a0 23 //  54: sw x4, 0(x3)
 00 41 81 93 //  58: addi x3, x3, 4
 00 10 80 93 //  5C: addi x1, x1, 1
-fe 20 98 e3 //  60: bne x1, x2, -16
+fe 20 9a e3 //  60: bne x1, x2, -16
 00 00 00 93 //  64: addi x1, x0, 0  (i = 0)
 00 80 21 83 //  68: lw x3, 8(x0)
 00 c0 22 83 //  6C: lw x5, 12(x0)
@@ -41,11 +41,39 @@ fe 20 98 e3 //  84: bne x1, x2, -20
 00 00 00 63 //  88: beq x0,x0,0
 
 // TEST BYPASS FROM MEM TO MEM -> LW x2,0(x1) ST x2,0(x12)
-00 c0 00 93 // addi x1, x0,12 // read pointer 5c
-00 00 06 13 // addi x12,x0,0 // write pointer 60 
-00 00 a1 03 // 64 lw x2,0(x1)                   
-00 26 20 23 // 68 sw x2,0(x12)
-00 40 a1 03 // 6c lw x2,4(x1)
-00 26 22 23 // 70 sw x2,4(x12)
-00 80 a1 03 // 74 lw x2,8(x1)
-00 26 24 23 // 78 sw x2,8(x12)
+00 c0 00 93 // 8c addi x1, x0,12 // read pointer 5c
+00 00 06 13 // 90 addi x12,x0,0 // write pointer 60 
+00 00 a1 03 // 94 lw x2,0(x1)                   
+00 26 20 23 // 98 sw x2,0(x12)
+00 40 a1 03 // 9c lw x2,4(x1)
+00 26 22 23 // a0 sw x2,4(x12)
+00 80 a1 03 // a4 lw x2,8(x1)
+00 26 24 23 // a8 sw x2,8(x12)
+
+
+// TEST DIV 
+00 a0 00 93 // ac: addi x1,x0,10
+00 20 01 13 // b0: addi x2,x0,2
+02 20 c1 b3 // b4: div x3,x1,x2 // leaves 5
+02 10 42 b3 // b8:  div x5, x0, x1 // leaves 0
+00 30 05 93 // bc:  addi x11,x0,3
+02 20 e2 33 // c0: rem x4,x1,x2  // leaves 0
+02 b0 c6 33 // c4: div x12, x1, x11 // leaves 3
+02 b0 e6 b3 // c8: rem x13, x1, x11 // leaves 1
+00 00 00 63 // cc: beq x0,x0,0
+
+// TEST PRIME
+00 00 00 13 // d0 addi x0, x0, 0
+00 00 20 83 // d4 lw x1, 0(x0)
+00 20 01 13 // d8 addi x2, x0, 2
+00 11 0a 63 // dc beq x2, x1, 20
+
+02 20 e1 b3 // e0 rem x3,x1,x2
+
+00 01 8a 63 //  e4: BEQ x3, x0, 2
+00 11 01 13 //  e8: ADDI x2, x2, 1
+fe 00 08 e3 //  ec: BEQ x0, x0, -16
+00 10 02 13 //  f0: ADDI x4, x0, 1
+00 00 00 63 //  f4: BEQ x0, x0, 0
+00 20 02 13 //  f8: ADDI x4, x0, 2
+00 00 00 63 //  fc: BEQ x0, x0, 0

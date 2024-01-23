@@ -8,14 +8,13 @@ module DIV(
 	   input [31:0] a,
 	   input [31:0] b,
 
-	   output reg busy,
+	   output busy,
 	   output [31:0] q,
 	   output [31:0] r);
 
 	localparam [31:0] INITIAL_DIVISOR = 32'b1,
 			  INITIAL_DIVIDEND = 32'b0;
 
-	wire nextBusy;
 
 	reg      quotientSign,     remainingSign,     curSignedness;
 	wire nextQuotientSign, nextRemainingSign, nextCurSignedness;
@@ -75,11 +74,10 @@ module DIV(
 
 	assign nextRemainder = dividend;
 
-	assign nextBusy = status != STATUS_IDLE;
+	assign busy = status != STATUS_IDLE;
 
 	always @(posedge clk, posedge reset) begin
 		if (reset) begin
-			busy <= 1'b0;
 			dividend <= INITIAL_DIVIDEND;
 			divisor <= INITIAL_DIVISOR;
 			quotient <= 32'b0;
@@ -93,7 +91,6 @@ module DIV(
 			divisor <= nextDivisor;
 			quotient <= nextQuotient;
 			remainder <= nextDividend;
-			busy <= nextBusy;
 			quotientSign <= nextQuotientSign;
 			remainingSign <= nextRemainingSign;
 			curSignedness <= nextCurSignedness;

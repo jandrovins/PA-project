@@ -11,6 +11,6 @@ module SYSTEM_tb();
 		reset = 1;
 		#10 reset = 0;
 
-		#2000 $finish;
+		#3000 $finish;
 	end
 endmodule // FETCH_STAGE_tb
