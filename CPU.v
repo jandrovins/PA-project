@@ -37,28 +37,53 @@ module CPU (
 	//########### FETCH STAGE BEGIN ###########//
 	//#########################################//
 
+	reg e_rd_we, e_alu_src2_is_imm, e_mem_we, e_is_jmp, e_is_branch;
+    reg [31:0] e_imm, e_pc_plus4, e_pc;
 	wire [31:0] e_branch_target_pc;
-	wire e_branch_en;
+	wire e_branch_taken_en;
 
 	wire [31:0] f_pc_plus4;
 	wire [31:0] next_f_pc;
 	wire [31:0] f_instr;
 
-	assign next_f_pc = e_branch_en ? e_branch_target_pc :
-						f_pc_plus4;
+	wire bp_f_predicted, bp_f_predicted_taken_en;
+	wire [31:0] bp_predicted_pc;
+	wire e_bp_mispredict_en;
 
-
+	assign next_f_pc = !e_bp_predicted && e_branch_taken_en ? e_branch_target_pc :
+					   e_bp_mispredict_en && e_branch_taken_en ? e_branch_target_pc :
+					   e_bp_mispredict_en && !e_branch_taken_en ? e_pc_plus4 :
+					   bp_f_predicted &&  bp_f_predicted_taken_en ? bp_predicted_pc :
+					   hu_stall_f_en ? f_pc :
+					   f_pc_plus4;
 
 	reg [31:0] f_pc;
-    wire       hu_stall_f_en;
+    wire hu_stall_f_en;
 	always @(posedge clk, posedge reset) begin
 		if (reset) begin
 			f_pc <= INITIAL_PC;
 		end else begin // if (reset)
-			f_pc <= hu_stall_f_en ? f_pc :
-					next_f_pc;
+			f_pc <= next_f_pc;
 		end
 	end // always @ (posedge clk, posedge reset)
+
+	BRANCH_PREDICTOR branch_predictor (
+		    .clk(clk),
+            .reset(reset),
+
+            // The following come from the F(fetch) stage
+            .bp_in_f_pc(f_pc),
+
+            // The following come from the E(execute) stage
+		    .bp_in_e_pc(e_pc),
+		    .bp_in_e_pc_branch_target(e_branch_target_pc),
+		    .bp_in_e_branch_en(e_is_branch), // is branch?
+		    .bp_in_e_branch_taken_en(e_branch_taken_en), // is taken branch?
+		    .bp_in_e_branch_mispredict_en(e_bp_mispredict_en), // is mispredict?
+
+            .bp_out_f_predicted_en(bp_f_predicted), // can we predict?
+            .bp_out_f_predicted_taken_en(bp_f_predicted_taken_en),
+		    .bp_out_f_predicted_pc(bp_predicted_pc));
 
 	wire icache_hit;
 	wire [31:0] icache_data;
@@ -76,13 +101,13 @@ module CPU (
 		     .hit(icache_hit)
 		     );
 
-
 	assign f_instr = icache_data;
 	assign f_pc_plus4 = f_pc + 4;
 
 	reg [31:0] d_pc;
 	reg [31:0] d_pc_plus4;
 	reg [31:0] d_instr;
+	reg d_bp_predicted, d_bp_predicted_taken_en;
 
 	wire 		hu_flush_d_en;
     wire        hu_stall_d_en;
@@ -91,6 +116,9 @@ module CPU (
 			d_pc <= INITIAL_PC;
 			d_pc_plus4 <= INITIAL_PC;
 			d_instr <= NOP; // Send NOP
+			d_bp_predicted <= 1'b0;
+			d_bp_predicted_taken_en <= 1'b0;
+
 		end else begin // if (reset)
 			d_pc       <= hu_stall_d_en ? d_pc :
 					      hu_flush_d_en ? INITIAL_PC :
@@ -101,6 +129,8 @@ module CPU (
 			d_instr    <= hu_stall_d_en ? d_instr    :
 						  hu_flush_d_en ? NOP        :
 						  f_instr;
+			d_bp_predicted <= bp_f_predicted;
+			d_bp_predicted_taken_en <= bp_f_predicted_taken_en;
 		end
 	end // always @ (posedge clk, posedge reset)
 
@@ -144,11 +174,10 @@ module CPU (
 	//#########################################//
 
 	reg [4:0] e_r1_key, e_r2_key, e_rd_key, e_alu_op;
-	reg e_rd_we, e_alu_src2_is_imm, e_mem_we, e_is_jmp, e_is_branch;
 	reg e_mem_data_size;
 	reg [1:0] e_rd_sel;
-    reg [31:0] e_imm, e_pc_plus4, e_pc;
     reg [31:0] e_r1_data, e_r2_data;
+	reg e_bp_predicted, e_bp_predicted_taken_en;
 	always @(posedge clk, posedge reset) begin
 		if (reset) begin
             // Passthrough
@@ -170,11 +199,13 @@ module CPU (
 			e_rd_sel          <= 2'b0;
 			e_imm             <= 32'b0;
             e_mem_data_size   <= MEM_WORD;
+			e_bp_predicted <= d_bp_predicted;
+			e_bp_predicted_taken_en <= d_bp_predicted_taken_en;
 		end else begin // if (reset)
             // Passthrough
             e_pc              <= hu_flush_e_en ? INITIAL_PC : d_pc;
             e_pc_plus4        <= hu_flush_e_en ? INITIAL_PC : d_pc_plus4;
-                                                           
+
             e_alu_src2_is_imm <= hu_flush_e_en ? 1'b0      : d_alu_src2_is_imm;
 			e_r1_key 		  <= hu_flush_e_en ? 5'b0      : d_r1_key;
 			e_r1_data 		  <= hu_flush_e_en ? 5'b0      : d_r1_data;
@@ -190,6 +221,8 @@ module CPU (
 			e_rd_sel          <= hu_flush_e_en ? 2'b0      : d_rd_sel;
 			e_imm             <= hu_flush_e_en ? 32'b0     : d_imm;
             e_mem_data_size   <= hu_flush_e_en ? MEM_WORD  : d_mem_data_size;
+			e_bp_predicted <= d_bp_predicted;
+			e_bp_predicted_taken_en <= d_bp_predicted_taken_en;
 		end
 	end // always @ (posedge clk, posedge reset)
 
@@ -211,13 +244,17 @@ module CPU (
 
         .d_in_r1_key(d_r1_key),
         .d_in_r2_key(d_r2_key),
+        .d_in_is_branch(d_is_branch),
 
         .e_in_r1_key(e_r1_key),
         .e_in_r2_key(e_r2_key),
 
         .e_in_rd_key(e_rd_key),
         .e_in_rd_is_load_en(e_rd_sel[0]), // if e_rd_sel == 0, then is LW (load word)
-		.e_in_branch_en(e_branch_en),
+		.e_in_is_branch(e_is_branch),
+		.e_in_bp_predicted_en(e_bp_predicted),
+        .e_in_bp_mispredict_en(e_bp_mispredict_en),
+        .e_in_branch_taken_en(e_branch_taken_en),
 
         .m_in_rd_key(m_rd_key),
         .m_in_rd_we (m_rd_we),
@@ -232,6 +269,7 @@ module CPU (
         .hu_out_stall_d_en(hu_stall_d_en),
         .hu_out_flush_e_en(hu_flush_e_en),
 		.hu_out_flush_d_en(hu_flush_d_en)
+
 	);
 
 	assign e_alu_src1 = hu_alu_src1_sel == 2'b00 ? e_r1_data :   // no bypass
@@ -254,8 +292,10 @@ module CPU (
               .alu_in_op(e_alu_op),
 
               .alu_out_result(e_alu_result),
-              .alu_out_branch_en(e_branch_en)
+              .alu_out_branch_en(e_branch_taken_en)
               );
+
+	assign e_bp_mispredict_en = e_is_branch && e_bp_predicted && (e_branch_taken_en != e_bp_predicted_taken_en);
 
 	//#########################################//
 	//############ EXECUTE STAGE END ##########//

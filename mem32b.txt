@@ -9,7 +9,7 @@
 00 e6 87 33 // add x14,x13,x14    -> 1c
 00 16 86 93 // addi x13,x13,1     -> 20
 fe c6 cc e3 // blt x13,x12,-8     -> 24
-fd 37 0f 13 // addi x30,x14,-45 - result should be 0   -> 28
+fd 37 0f 13 // addi x30,x14,-45 - result should be 0 in register x30   -> 28
 00 00 50 63 // bge zero,zero,0 - idle                  -> 2c
 // OTHER PROGRAM - EXPECTED RESULT: x3=0x18 x2=0x4 x1=0x0
 00 c0 00 93 // addi x1, x0, 12   -> 30

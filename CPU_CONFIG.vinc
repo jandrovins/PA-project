@@ -1,1 +1,1 @@
-localparam [31:0] INITIAL_PC = 32'h5c;
+localparam [31:0] INITIAL_PC = 32'h10;

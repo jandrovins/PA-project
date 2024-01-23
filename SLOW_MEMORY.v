@@ -1,5 +1,3 @@
-
-
 /*
  * An sync-read, sync-write, 5 cycle latency memory emulator. It has a size of NUM_BYTES bytes,
  * which can be easily set at instantiation time, and outputs a word
@@ -27,6 +25,28 @@ module SLOW_MEMORY #(
 
 	initial begin
 		$readmemh(INITIAL_MEMORY_FILE, memory);
+		$dumpvars(0, memory[0]);
+		$dumpvars(0, memory[1]);
+		$dumpvars(0, memory[2]);
+		$dumpvars(0, memory[3]);
+		$dumpvars(0, memory[4]);
+		$dumpvars(0, memory[5]);
+		$dumpvars(0, memory[6]);
+		$dumpvars(0, memory[7]);
+		$dumpvars(0, memory[8]);
+		$dumpvars(0, memory[9]);
+		$dumpvars(0, memory[10]);
+		$dumpvars(0, memory[11]);
+		$dumpvars(0, memory[12]);
+		$dumpvars(0, memory[13]);
+		$dumpvars(0, memory[14]);
+		$dumpvars(0, memory[15]);
+		$dumpvars(0, memory[16]);
+		$dumpvars(0, memory[17]);
+		$dumpvars(0, memory[18]);
+		$dumpvars(0, memory[19]);
+		$dumpvars(0, memory[20]);
+		$dumpvars(0, memory[21]);
 	end
 
 	reg [7:0] memory [0:NUM_BYTES-1];
